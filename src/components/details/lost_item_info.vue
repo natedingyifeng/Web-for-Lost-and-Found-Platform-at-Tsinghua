@@ -29,52 +29,95 @@
       <el-form class="form"
                label-width="100px">
         <el-divider>启事信息</el-divider>
-        <el-form-item label='ID'>
-          <el-input v-model="id"
-                    :disabled="true"></el-input>
-        </el-form-item>
-        <el-form-item label='创建者ID'>
-          <el-input v-model="lost_data[id-1].created_by"
-                    :disabled="true"
-                    style="width:80%;"></el-input>
-          <el-button type='primary'
-                     @click="enterUser(lost_data[id-1].created_by)"
-                     style="margin-left:20px;">查看创建者</el-button>
-        </el-form-item>
-        <el-form-item label='创建时间'>
-          <el-input v-model="lost_data[id-1].created_at"
-                    :disabled="true"></el-input>
+        <el-form-item label="ID">
+          <el-row>
+            <el-col span="5">
+              <el-input v-model="id"
+                          :disabled="true"></el-input>
+            </el-col>
+            <el-col span="8">
+              <el-form-item label='创建者ID'>
+                <el-input v-model="lost_data[id-1].created_by"
+                          :disabled="true"
+                          style="width:100%;"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col span="8">
+              <el-form-item label='创建时间'>
+              <el-input v-model="lost_data[id-1].created_at"
+                        :disabled="true"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col span="3">
+              <el-form-item>
+                  <el-button type='primary'
+                            @click="enterUser(lost_data[id-1].created_by)"
+                            style="margin-left:20px;">查看创建者</el-button>
+              </el-form-item>
+            </el-col>
+          </el-row>
         </el-form-item>
         <el-divider>物品信息</el-divider>
         <el-form-item label='拾取物品种类'
                       class="label">
-          <el-input v-model="lost_data[id-1].lost_item_type"
-                    :readOnly=notEdit></el-input>
+          <el-row>
+            <el-col span="7">
+              <el-input v-model="lost_data[id-1].lost_item_type"
+                        :readOnly=notEdit></el-input>
+            </el-col>
+            <el-col span="10" :offset="1">
+              <el-form-item label='拾取物品名称'
+                            class="label">
+                <el-input v-model="lost_data[id-1].lost_item_name"
+                          :readOnly=notEdit></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col span="6">
+              <el-form-item label='拾取者'
+                            class="label">
+                <el-input v-model="lost_data[id-1].lost_man"
+                          :readOnly=notEdit></el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
         </el-form-item>
-        <el-form-item label='拾取物品名称'
+        <el-form-item label='拾取时间'
                       class="label">
-          <el-input v-model="lost_data[id-1].lost_item_name"
-                    :readOnly=notEdit></el-input>
+          <el-row>
+            <el-col span="11">
+              <el-time-select
+                placeholder="起始时间"
+                v-model="startTime"
+                :picker-options="{
+                  start: '08:30',
+                  step: '00:15',
+                  end: '18:30'
+                }">
+              </el-time-select>
+              <el-time-select
+                placeholder="结束时间"
+                v-model="endTime"
+                :picker-options="{
+                  start: '08:30',
+                  step: '00:15',
+                  end: '18:30',
+                  minTime: startTime
+                }">
+              </el-time-select>
+            </el-col>
+            <el-col span="13">
+              <el-form-item label='拾取地点'
+                            class="label">
+                <el-input v-model="lost_data[id-1].lost_place"
+                          :readOnly=notEdit></el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
         </el-form-item>
         <el-form-item label='详情描述'
                       class="label">
           <el-input v-model="lost_data[id-1].lost_description"
                     type='textarea'
-                    :readOnly=notEdit></el-input>
-        </el-form-item>
-        <el-form-item label='拾取时间'
-                      class="label">
-          <el-input v-model="lost_data[id-1].lost_time"
-                    :readOnly=notEdit></el-input>
-        </el-form-item>
-        <el-form-item label='拾取地点'
-                      class="label">
-          <el-input v-model="lost_data[id-1].lost_place"
-                    :readOnly=notEdit></el-input>
-        </el-form-item>
-        <el-form-item label='拾取者'
-                      class="label">
-          <el-input v-model="lost_data[id-1].lost_man"
                     :readOnly=notEdit></el-input>
         </el-form-item>
         <el-form-item label='标签'

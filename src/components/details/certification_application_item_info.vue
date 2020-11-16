@@ -3,7 +3,7 @@
   <div>
     <el-card class="title_card"
              style="font-size:24px;">
-      {{'用户详情#' + this.id }}
+      {{'认证申请#' + this.id }}
       <div class="edit">
         <el-button :id="id"
                         :data="data"
@@ -105,23 +105,6 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-divider>全部发帖</el-divider>
-        <!-- <el-form-item label='全部发帖'> -->
-          <el-collapse accordion>
-            <el-collapse-item title="失物招领"
-                              name="1">
-              <lost-table :id="id"
-                          :pageSize=5
-                          :height=400></lost-table>
-            </el-collapse-item>
-            <el-collapse-item title="寻物启事"
-                              name="2">
-              <found-table :id="id"
-                           :pageSize=5
-                           :height=400></found-table>
-            </el-collapse-item>
-          </el-collapse>
-        <!-- </el-form-item> -->
       </el-form>
     </el-card>
   </div>
@@ -214,10 +197,10 @@ export default {
       dialogVisible: false,
       status_options: [{
         value: 'UNA',
-        label: '未认证'
+        label: '未通过'
       }, {
         value: 'ACC',
-        label: '已认证'
+        label: '已通过'
       }],
       notEdit: true
     }

@@ -24,11 +24,13 @@
                     v-if="hasLogin === true">寻物启事列表</el-menu-item>
       <el-menu-item index="7"
                     v-if="hasLogin === true">用户列表</el-menu-item>
-      <el-submenu index="6"
+      <el-menu-item index="6"
+                    v-if="hasLogin === true">认证申请</el-menu-item>
+      <el-submenu index="8"
                   v-if="hasLogin === true && isAdmin === true">
-        <template slot="title">申请列表</template>
-        <el-menu-item index="6-1">学生/教师认证申请</el-menu-item>
-        <el-menu-item index="6-2">职工/管理员认证申请</el-menu-item>
+        <template slot="title">添加物品</template>
+        <el-menu-item index="8-1">物品种类</el-menu-item>
+        <el-menu-item index="8-2">物品类别</el-menu-item>
       </el-submenu>
       <el-menu-item index="3"
                     v-if="hasLogin === true && isAdmin === true">平台信息</el-menu-item>
@@ -108,24 +110,19 @@ export default {
           this.$router.push('/create-renter-application')
           break
         }
-        case '6-1': {
+        case '6': {
           this.activeIndex = '6'
-          this.$router.push('/renter-application-list')
-          break
-        }
-        case '6-2': {
-          this.activeIndex = '6'
-          this.$router.push('/rent-application-list')
-          break
-        }
-        case '6-3': {
-          this.activeIndex = '6'
-          this.$router.push('/release-application-list')
+          this.$router.push('/certification-application-list')
           break
         }
         case '7': {
           this.activeIndex = '7'
           this.$router.push('/user-list')
+          break
+        }
+        case '8-1': {
+          this.activeIndex = '8'
+          this.$router.push('/property-types-list')
           break
         }
       }

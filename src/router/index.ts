@@ -123,6 +123,16 @@ const routes: Array<RouteConfig> = [
     component: () => import('../views/user_list.vue')
   },
   {
+    path: '/certification-application-list',
+    name: 'certification-application-list',
+    component: () => import('../views/certification_application_list.vue')
+  },
+  {
+    path: '/property-types-list',
+    name: 'property-types-list',
+    component: () => import('../views/property_types_list.vue')
+  },
+  {
     path: '/lost/:lostId',
     name: 'lost',
     component: () => import('../views/lost.vue')
@@ -136,6 +146,11 @@ const routes: Array<RouteConfig> = [
     path: '/user/:userId',
     name: 'user',
     component: () => import('../views/user.vue')
+  },
+  {
+    path: '/certification-application/:certificationApplicationId',
+    name: 'certification-application',
+    component: () => import('../views/certification_application.vue')
   }
 ]
 

@@ -13,6 +13,10 @@
   padding: 0;
   margin: 0;
 }
+body {
+  display: block;
+  margin: 0px;
+}
 </style>
 
 <script>
