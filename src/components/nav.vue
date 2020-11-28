@@ -19,9 +19,9 @@
       </div>
       <el-menu-item index="1"
                     style="margin-left:30px;"
-                    v-if="hasLogin === true">失物招领列表</el-menu-item>
-      <el-menu-item index="2"
                     v-if="hasLogin === true">寻物启事列表</el-menu-item>
+      <el-menu-item index="2"
+                    v-if="hasLogin === true">失物招领列表</el-menu-item>
       <el-menu-item index="7"
                     v-if="hasLogin === true">用户列表</el-menu-item>
       <el-menu-item index="6"
@@ -123,6 +123,11 @@ export default {
         case '8-1': {
           this.activeIndex = '8'
           this.$router.push('/property-types-list')
+          break
+        }
+        case '8-2': {
+          this.activeIndex = '8'
+          this.$router.push('/property-templates-list')
           break
         }
       }

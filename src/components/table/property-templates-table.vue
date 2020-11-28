@@ -1,11 +1,37 @@
 // writen by xyh
 <template>
   <div>
-    <el-card class="title-card">所有寻物启事</el-card>
+    <el-card class="title-card">
+      所有物品模板
+      <div class="edit">
+        <el-button :id="id"
+                    target="rent-application"
+                    class="change"
+                    @click="dialogFormVisible = true"
+                    type="primary">新建</el-button>
+        <el-button :id="id"
+                    class="delete"
+                    type="primary"
+                    target="rent-application">删除</el-button>
+      </div>
+    </el-card>
+    <el-dialog class="new_type" title="新建物品种类" :visible.sync="dialogFormVisible">
+      <el-form label-width="100px">
+        <el-form-item label="物品种类名称">
+          <el-input autocomplete="off" v-model="template_name.name"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="CreateNewType">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
     <search-filter :options="options"
                    @search="searchAndFilter"></search-filter>
     <el-card class="table-card">
-      <el-table :data="lostList"
+      <el-table :data="property_template_list.results"
                 stripe
                 id="users-table"
                 class="table"
@@ -13,31 +39,11 @@
                 :height="height">
         <el-table-column prop="id"
                          label="ID"
-                         width="80">
+                         width="100">
         </el-table-column>
-        <el-table-column prop="created_at"
-                         label="创建时间"
-                         width="200">
-        </el-table-column>
-        <el-table-column prop="created_by"
-                         label="创建者"
-                         width="200">
-        </el-table-column>
-        <el-table-column prop="lost_item"
-                         label="丢失物品"
-                         width="230">
-        </el-table-column>
-        <el-table-column prop="lost_place"
-                         label="丢失地点"
-                         width="250">
-        </el-table-column>
-        <el-table-column prop="lost_time"
-                         label="丢失时间"
-                         width="200">
-        </el-table-column>
-        <el-table-column prop="status"
-                         label="状态"
-                         width="130">
+        <el-table-column prop="name"
+                         label="种类名称"
+                         width="1200">
         </el-table-column>
       </el-table>
       <el-pagination background
@@ -69,6 +75,16 @@
   left: 45%;
   top: 10px;
 }
+.edit{
+  position: relative;
+  float: right;
+  margin: auto;
+  margin-bottom: 20px;
+}
+.foot{
+  position: relative;
+  top: -20px;
+}
 </style>
 
 <script>
@@ -85,19 +101,17 @@ export default {
   },
   data: function () {
     return {
-      lostList: [
-        {id: 1, created_at: "2020.11.1 12:58", created_by: "丁一峰", lost_item: "Airpods Pro", lost_place: "第六教学楼", lost_time: "10月31日晚上八点左右", status: "未归还"},
-        {id: 2, created_at: "2020.11.2 21:23", created_by: "苏敬恒", lost_item: "Macbook Pro", lost_place: "清华学堂", lost_time: "11月2日上午十点左右", status: "未归还"}
-      ],
+      dialogFormVisible: false,
+      property_template_list: [],
       options: [
         { value: 'search', label: '全部搜索' },
-        { value: 'creator', label: '筛选：创建者' },
-        { value: 'equipment', label: '筛选：丢失物品' },
-        { value: 'address', label: '筛选：丢失地点' },
-        { value: 'status', label: '筛选：状态' }
+        { value: 'creator', label: '筛选：申请者' }
       ],
       select: 'search',
       input: '',
+      template_name: {
+        name: ''
+      },
       data: { count: 0 }
     }
   },
@@ -121,11 +135,41 @@ export default {
     //       alert('error:' + error)
     //     })
     // }
+    Axios.get('/property-templates', {})
+      .then((response) => {
+          this.property_template_list = response.data
+          console.log(this.property_template_list.results)
+      })
+      .catch((error) => {
+        alert('error:' + error)
+      })
     this.changePage(1)
   },
   methods: {
+    reload () {
+      location.reload()
+    },
+    CreateNewType: function() {
+      const data = {
+        name: this.type_name.name
+      }
+      Axios({
+        url: '/property-types/',
+        method: 'post',
+        data: data
+      })
+        .then((response) => {
+          this.dialogFormVisible = false
+          this.reload()
+          console.log(response.data)
+        })
+        .catch((error) => {
+          alert('error:' + error)
+        })
+      this.dialogFormVisible = false
+    },
     enter: function (row) {
-      this.$router.push({ name: 'lost', params: { lostId: row.id } })
+      this.$router.push({ name: 'property-templates', params: { templateId: row.id } })
     },
     searchAndFilter: function (select, input) {
       this.select = select

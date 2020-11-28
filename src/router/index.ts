@@ -133,6 +133,11 @@ const routes: Array<RouteConfig> = [
     component: () => import('../views/property_types_list.vue')
   },
   {
+    path: '/property-templates-list',
+    name: 'property-templates-list',
+    component: () => import('../views/property_templates_list.vue')
+  },
+  {
     path: '/lost/:lostId',
     name: 'lost',
     component: () => import('../views/lost.vue')
@@ -146,6 +151,11 @@ const routes: Array<RouteConfig> = [
     path: '/user/:userId',
     name: 'user',
     component: () => import('../views/user.vue')
+  },
+  {
+    path: '/property-templates/:templateId',
+    name: 'property-templates',
+    component: () => import('../views/property_templates.vue')
   },
   {
     path: '/certification-application/:certificationApplicationId',

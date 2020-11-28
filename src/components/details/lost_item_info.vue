@@ -3,7 +3,7 @@
   <div class = "info">
     <el-card class="title_card"
              style="font-size:24px;">
-      {{'失物招领#' + id }}
+      {{'寻物启事#' + id }}
       <div class="edit">
         <el-button :id="id"
                       :data="rent_data"
@@ -58,7 +58,7 @@
           </el-row>
         </el-form-item>
         <el-divider>物品信息</el-divider>
-        <el-form-item label='拾取物品种类'
+        <el-form-item label='丢失物品种类'
                       class="label">
           <el-row>
             <el-col span="7">
@@ -66,14 +66,14 @@
                         :readOnly=notEdit></el-input>
             </el-col>
             <el-col span="10" :offset="1">
-              <el-form-item label='拾取物品名称'
+              <el-form-item label='丢失物品名称'
                             class="label">
                 <el-input v-model="lost_data[id-1].lost_item_name"
                           :readOnly=notEdit></el-input>
               </el-form-item>
             </el-col>
             <el-col span="6">
-              <el-form-item label='拾取者'
+              <el-form-item label='丢失者'
                             class="label">
                 <el-input v-model="lost_data[id-1].lost_man"
                           :readOnly=notEdit></el-input>
@@ -81,7 +81,7 @@
             </el-col>
           </el-row>
         </el-form-item>
-        <el-form-item label='拾取时间'
+        <el-form-item label='丢失时间'
                       class="label">
           <el-row>
             <el-col span="11">
@@ -106,7 +106,7 @@
               </el-time-select>
             </el-col>
             <el-col span="13">
-              <el-form-item label='拾取地点'
+              <el-form-item label='丢失地点'
                             class="label">
                 <el-input v-model="lost_data[id-1].lost_place"
                           :readOnly=notEdit></el-input>

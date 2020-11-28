@@ -3,7 +3,7 @@
   <div class = "info">
     <el-card class="title_card"
              style="font-size:24px;">
-      {{'寻物启事#' + this.id }}
+      {{'失物招领#' + this.id }}
       <div class="edit">
         <el-button :id="id"
                       :data="rent_data"
@@ -36,15 +36,15 @@
                           :disabled="true"></el-input>
             </el-col>
             <el-col span="8">
-              <el-form-item label='创建者ID'>
-                <el-input v-model="found_data[id-1].created_by"
+              <el-form-item label='创建者姓名'>
+                <el-input v-model="found_notice.author.username"
                           :disabled="true"
                           style="width:100%;"></el-input>
               </el-form-item>
             </el-col>
             <el-col span="8">
               <el-form-item label='创建时间'>
-              <el-input v-model="found_data[id-1].created_at"
+              <el-input v-model="found_notice.created_at"
                           :disabled="true"></el-input>
               </el-form-item>
             </el-col>
@@ -58,57 +58,43 @@
           </el-row>
         </el-form-item>
         <el-divider>物品信息</el-divider>
-        <el-form-item label='丢失物品种类'
+        <el-form-item label='拾取物品种类'
                       class="label">
           <el-row>
             <el-col span="7">
-              <el-input v-model="found_data[id-1].found_item_type"
+              <el-input v-model="found_notice.property.template"
                         :readOnly=notEdit></el-input>
             </el-col>
             <el-col span="10" :offset="1">
-              <el-form-item label='丢失物品名称'
+              <el-form-item label='拾取物品名称'
                             class="label">
-                <el-input v-model="found_data[id-1].found_item_name"
+                <el-input v-model="found_notice.property.name"
                           :readOnly=notEdit></el-input>
               </el-form-item>
             </el-col>
             <el-col span="6">
-              <el-form-item label='丢失者'
+              <el-form-item label='拾取者'
                             class="label">
-                <el-input v-model="found_data[id-1].found_man"
+                <el-input v-model="found_notice.author.username"
                           :readOnly=notEdit></el-input>
               </el-form-item>
             </el-col>
           </el-row>
         </el-form-item>
-        <el-form-item label='丢失时间'
+        <el-form-item label='拾取时间'
                       class="label">
           <el-row>
             <el-col span="11">
               <el-time-select
-                placeholder="起始时间"
-                v-model="startTime"
-                :picker-options="{
-                  start: '08:30',
-                  step: '00:15',
-                  end: '18:30'
-                }">
-              </el-time-select>
-              <el-time-select
-                placeholder="结束时间"
-                v-model="endTime"
-                :picker-options="{
-                  start: '08:30',
-                  step: '00:15',
-                  end: '18:30',
-                  minTime: startTime
-                }">
+                placeholder="拾取时间"
+                v-model="found_notice.found_datetime"
+                :disabled=notEdit>
               </el-time-select>
             </el-col>
             <el-col span="13">
-              <el-form-item label='丢失地点'
+              <el-form-item label='拾取地点'
                             class="label">
-                <el-input v-model="found_data[id-1].found_place"
+                <el-input v-model="found_notice.found_location"
                           :readOnly=notEdit></el-input>
               </el-form-item>
             </el-col>
@@ -116,13 +102,13 @@
         </el-form-item>
         <el-form-item label='详情描述'
                       class="label">
-          <el-input v-model="found_data[id-1].found_description"
+          <el-input v-model="found_notice.description"
                     type='textarea'
                     :readOnly=notEdit></el-input>
         </el-form-item>
         <el-form-item label='标签'
                       class="label">
-          <el-tag v-for="item in found_data[id-1].found_tags" 
+          <el-tag v-for="item in found_data[0].found_tags" 
                   closable
                   :disable-transitions="false"
                   :key="item" 
@@ -142,7 +128,7 @@
                       class="label">
           <!-- <el-input v-model="data.status"
                     :disabled="diseditable"></el-input> -->
-          <el-select v-model="found_data[id-1].found_status"
+          <el-select v-model="found_notice.status"
                      :disabled=notEdit>
             <el-option v-for="item in status_options"
                        :key="item.value"
@@ -158,14 +144,14 @@
                         wrap-class="default-scrollbar__wrap" 
                         view-class="default-scrollbar__view"> -->
             <el-row :gutter="10">
-              <el-col v-for="url in found_data[id-1].found_urls" :key="url" span="7">
-                <el-image :key="url" :src="url" :preview-src-list="found_data[id-1].found_urls" fit="scale-down" lazy ></el-image>
+              <el-col v-for="url in found_data[0].found_urls" :key="url" span="7">
+                <el-image :key="url" :src="url" :preview-src-list="found_data[0].found_urls" fit="scale-down" lazy ></el-image>
               </el-col>
             </el-row>
           <!-- </el-scrollbar> -->
         </el-form-item>
         <el-divider>联系方式</el-divider>
-        <el-form-item v-for="item in found_data[id-1].found_contact_info" :key="item.type" :label="item.type" class="label">
+        <el-form-item v-for="item in found_data[0].found_contact_info" :key="item.type" :label="item.type" class="label">
           <el-input v-model="item.content"
                     :readOnly=notEdit></el-input>
         </el-form-item>
@@ -241,6 +227,7 @@ export default {
   },
   data: function () {
     return {
+      found_notice: [],
       found_data: [{
         created_at: '2020.10.29 9:32',
         created_by: '3',
@@ -341,8 +328,67 @@ export default {
     //   .catch((error) => {
     //     this.$alert(error.response.data)
     //   })
+    axios.get('/found-notices/'+this.id, {})
+      .then((response) => {
+          this.found_notice = response.data
+          let found_datetime = this.found_notice.found_datetime
+          let created_at = this.found_notice.created_at
+          let updated_at = this.found_notice.updated_at
+          this.found_notice.found_datetime=this.extractTime(found_datetime)
+          this.found_notice.created_at=this.extractTime(created_at)
+          this.found_notice.updated_at=this.extractTime(updated_at)
+          //console.log(this.property_template_list.results[id-1])
+          console.log(this.found_notice)
+      })
+      .catch((error) => {
+        alert('error:' + error)
+      })
+    this.changePage(1)
   },
   methods: {
+    extractTime(time){
+      let date=time.split("T");
+      let day=date[0].split("-");
+      let hour=date[1].split("+");
+      let specificTime=hour[0].split(":");
+      let today = new Date();
+      let yesterday = new Date();
+      let yesyesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+      yesyesterday.setDate(today.getDate() - 2);
+      let result;
+      if(Number(today.getFullYear())===Number(day[0]) && Number(today.getMonth()+1)===Number(day[1]) && Number(today.getDate())===Number(day[2]))
+      {
+        if(Number(today.getHours())===Number(specificTime[0])
+        || (Number(today.getHours())===Number(specificTime[0])+1 && today.getMinutes()<Number(specificTime[0])))
+        {
+          let interval=Number(today.getMinutes())<Number(specificTime[1])?60+Number(today.getMinutes())-Number(specificTime[1]):Number(today.getMinutes())-Number(specificTime[1]);
+          if(interval===0) result="不到1分钟前";
+          else result=String(interval)+"分钟前";
+        }
+        else result=specificTime[0]+":"+specificTime[1];
+      }
+      else if((Number(yesterday.getFullYear())===Number(day[0]) && Number(yesterday.getMonth()+1)===Number(day[1]) && Number(yesterday.getDate())===Number(day[2])))
+      {
+        result="昨天 "+specificTime[0]+":"+specificTime[1];
+      }
+      else if((Number(yesyesterday.getFullYear())===Number(day[0]) && Number(yesyesterday.getMonth()+1)===Number(day[1]) && Number(yesyesterday.getDate())===Number(day[2])))
+      {
+        result="前天 "+specificTime[0]+":"+specificTime[1];
+      }
+      else
+      {
+        if(Number(today.getFullYear())!==Number(day[0]))
+        {
+          result=date[0]+" "+specificTime[0]+":"+specificTime[1];
+        }
+        else
+        {
+          result= day[1]+"-"+day[2]+" "+specificTime[0]+":"+specificTime[1];
+        }
+      }
+      return result;
+    },
     handleClose(tag) {
       this.found_data[this.id-1].found_tags.splice(this.found_data[this.id-1].found_tags.indexOf(tag), 1);
     },
