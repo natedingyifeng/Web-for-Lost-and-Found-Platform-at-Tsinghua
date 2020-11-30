@@ -30,7 +30,7 @@
                   v-if="hasLogin === true && isAdmin === true">
         <template slot="title">添加物品</template>
         <el-menu-item index="8-1">物品种类</el-menu-item>
-        <el-menu-item index="8-2">物品类别</el-menu-item>
+        <el-menu-item index="8-2">物品模板</el-menu-item>
       </el-submenu>
       <el-menu-item index="3"
                     v-if="hasLogin === true && isAdmin === true">平台信息</el-menu-item>

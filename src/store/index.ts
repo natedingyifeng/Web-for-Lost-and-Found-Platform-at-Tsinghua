@@ -16,26 +16,26 @@ export default new Vuex.Store({
     // showLoginBtn: true, // 显示/隐藏 header登录/注册按钮
     // isOverdue: false // 是否登录过期
   },
-  // mutations: {
-  //   setUserKey (state, userKey) {
-  //     state.userKey = userKey
-  //     localStorage.userKey = userKey
-  //   },
-  //   setCurrentUser (state, payload) {
-  //     state.user = payload.user
-  //     localStorage.user = JSON.stringify(payload.user)
-  //     state.isAdmin = payload.isAdmin
-  //     localStorage.isAdmin = payload.isAdmin
-  //   },
-  //   resetState (state) {
-  //     state.userKey = null // 用户key
-  //     state.isAdmin = false
-  //     state.user = {}
-  //     localStorage.user = JSON.stringify({})
-  //     localStorage.isAdmin = false
-  //     localStorage.userKey = null
-  //   }
-  // },
+  mutations: {
+    setUserKey (state, userKey) {
+      state.userKey = userKey
+      localStorage.userKey = userKey
+    }
+    // setCurrentUser (state, payload) {
+    //   state.user = payload.user
+    //   localStorage.user = JSON.stringify(payload.user)
+    //   state.isAdmin = payload.isAdmin
+    //   localStorage.isAdmin = payload.isAdmin
+    // },
+    // resetState (state) {
+    //   state.userKey = null // 用户key
+    //   state.isAdmin = false
+    //   state.user = {}
+    //   localStorage.user = JSON.stringify({})
+    //   localStorage.isAdmin = false
+    //   localStorage.userKey = null
+    // }
+  },
   actions: {
   },
   modules: {

@@ -88,11 +88,7 @@
         </el-form-item>
         <el-form-item label='图片'
                       class="label">
-          <el-row :gutter="10">
-            <el-col v-for="url in property_template_list.results[id-1].thumbnail" :key="url" span="7">
-              <el-image :key="url" :src="url" fit="scale-down" lazy ></el-image>
-            </el-col>
-          </el-row>
+          <el-image style="width: 300px" :src="property_template_list.results[id-1].thumbnail" fit="fit" lazy ></el-image>
         </el-form-item>
       </el-form>
     </el-card>

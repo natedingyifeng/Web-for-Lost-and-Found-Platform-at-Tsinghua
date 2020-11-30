@@ -17,14 +17,45 @@
     </el-card>
     <el-dialog class="new_type" title="新建物品种类" :visible.sync="dialogFormVisible">
       <el-form label-width="100px">
-        <el-form-item label="物品种类名称">
-          <el-input autocomplete="off" v-model="template_name.name"></el-input>
+        <el-form-item label="物品模板名称">
+          <el-input autocomplete="off" v-model="template.name"></el-input>
+        </el-form-item>
+        <el-form-item label='物品种类'
+                      class="label">
+          <el-select v-model="template.type">
+            <el-option v-for="item in property_type_list.results"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label='模板图片'>
+          <el-upload
+            class="avatar-uploader"
+            action="none"
+            :on-preview="handleImageUploadSuccess"
+            list-type="picture-card"
+            :auto-upload="false"
+            :on-change="checkType"
+            :limit="1"
+            :on-exceed="handleExceed">
+            <i v-if="!image_visible" class="el-icon-plus"></i>
+          </el-upload>
+          <el-dialog :visible.sync="image_visible">
+            <img width="100%" :src="template.thumbnail_url" alt="">
+          </el-dialog>
+        </el-form-item>
+        <el-form-item label='模板fields'
+                      class="label">
+          <el-input v-model="template.fields"
+                    type='textarea'></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <div class="foot">
           <el-button @click="dialogFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="CreateNewType">确 定</el-button>
+          <el-button type="primary" @click="CreateNewTemplate">确 定</el-button>
         </div>
       </div>
     </el-dialog>
@@ -102,15 +133,23 @@ export default {
   data: function () {
     return {
       dialogFormVisible: false,
+      image_visible: false,
       property_template_list: [],
+      property_type_list: [],
+      image: null,
+      image_url: '',
       options: [
         { value: 'search', label: '全部搜索' },
         { value: 'creator', label: '筛选：申请者' }
       ],
       select: 'search',
       input: '',
-      template_name: {
-        name: ''
+      template: {
+        name: '',
+        type: '',
+        thumbnail: null,
+        thumbnail_url: '',
+        fields: ''
       },
       data: { count: 0 }
     }
@@ -135,7 +174,13 @@ export default {
     //       alert('error:' + error)
     //     })
     // }
-    Axios.get('/property-templates', {})
+    //Axios.defaults.headers.common["Authorization"]="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjA2NjYyNjM3LCJqdGkiOiI1MjZlZDIyYjhlYTI0MzZmOTQzNDIxNzZjM2E1ZGFiZCIsInVzZXJfaWQiOjJ9.nHlpi0V4GbErqIhEsJAU42ITsUzN7SBXAvombMXrB8M"
+    // Axios.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
+    Axios.get('/property-templates', {
+      // headers: {
+      //   Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjA2NjYyNjM3LCJqdGkiOiI1MjZlZDIyYjhlYTI0MzZmOTQzNDIxNzZjM2E1ZGFiZCIsInVzZXJfaWQiOjJ9.nHlpi0V4GbErqIhEsJAU42ITsUzN7SBXAvombMXrB8M'
+      // }
+    })
       .then((response) => {
           this.property_template_list = response.data
           console.log(this.property_template_list.results)
@@ -143,20 +188,48 @@ export default {
       .catch((error) => {
         alert('error:' + error)
       })
+    Axios.get('/property-types', {})
+      .then((response) => {
+          this.property_type_list = response.data
+          //console.log(this.property_template_list.results[id-1])
+          //console.log(this.property_template_list.results[this.id-1].thumbnail)
+      })
+      .catch((error) => {
+        alert('error:' + error)
+      })
     this.changePage(1)
   },
   methods: {
+    handleImageUploadSuccess(file) {
+      this.template.thumbnail_url = file.url
+      this.image_visible = true
+    },
+    handleExceed(files, fileList) {
+      this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+    },
+    checkType(file,fileList) {
+      this.template.thumbnail=file
+    },
     reload () {
       location.reload()
     },
-    CreateNewType: function() {
-      const data = {
-        name: this.type_name.name
-      }
+    CreateNewTemplate: function() {
+      // const data = {
+      //   name: this.type_name.name
+      // }
+      let data=new FormData();
+      data.append('name', this.template.name)
+      data.append('type', this.template.type)
+      data.append('thumbnail', this.template.thumbnail.raw)
+      data.append('fields', this.template.fields)
+      //Axios.defaults.headers.common["Authorization"]="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjA2NTc2NDU4LCJqdGkiOiI3Njc4NjUzOWY0NDU0Y2NiYjUxOTEzZWFlZjUxMjFiYyIsInVzZXJfaWQiOjF9.HCgdFjYiXHIJFQDbbnvLZCe2JzA2es-AiTKuHWWyBVU"
       Axios({
-        url: '/property-types/',
+        url: '/property-templates/',
         method: 'post',
         data: data
+        // headers: {
+        //   Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjA2NTc2NDU4LCJqdGkiOiI3Njc4NjUzOWY0NDU0Y2NiYjUxOTEzZWFlZjUxMjFiYyIsInVzZXJfaWQiOjF9.HCgdFjYiXHIJFQDbbnvLZCe2JzA2es-AiTKuHWWyBVU'
+        // }
       })
         .then((response) => {
           this.dialogFormVisible = false
