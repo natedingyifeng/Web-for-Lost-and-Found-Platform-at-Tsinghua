@@ -74,7 +74,19 @@
         </el-table-column>
         <el-table-column prop="name"
                          label="种类名称"
-                         width="1200">
+                         width="1000">
+        </el-table-column>
+        <el-table-column label="操作"
+                         width="200">
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              @click.native.stop="handleEdit(scope.$index, scope.row)">编辑</el-button>
+            <el-button
+              size="mini"
+              type="danger"
+              @click.native.stop="handleDelete(scope.$index, scope.row)">删除</el-button>
+          </template>
         </el-table-column>
       </el-table>
       <el-pagination background
@@ -200,6 +212,19 @@ export default {
     this.changePage(1)
   },
   methods: {
+    handleEdit(index, row) {
+      console.log(index, row)
+    },
+    handleDelete(index, row) {
+      // console.log(row.id)
+      Axios.delete('/property-templates/' + row.id + '/', {})
+      .then((response) => {
+          this.reload()
+      })
+      .catch((error) => {
+        alert('error:' + error)
+      })
+    },
     handleImageUploadSuccess(file) {
       this.template.thumbnail_url = file.url
       this.image_visible = true

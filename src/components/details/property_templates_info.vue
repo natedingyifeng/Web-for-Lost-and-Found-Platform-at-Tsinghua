@@ -3,7 +3,7 @@
   <div class = "info">
     <el-card class="title_card"
              style="font-size:24px;">
-      {{'物品模板#' + this.property_template_list.results[this.id-1].id }}
+      {{'物品模板#' + this.property_template_list.id }}
       <div class="edit">
         <el-button :id="id"
                       :data="rent_data"
@@ -32,12 +32,12 @@
         <el-form-item label='ID'>
           <el-row>
             <el-col span="5">
-              <el-input v-model="property_template_list.results[id-1].id"
+              <el-input v-model="property_template_list.id"
                           :disabled="true"></el-input>
             </el-col>
             <el-col span="8">
               <el-form-item label='物品名称'>
-                <el-input v-model="property_template_list.results[id-1].name"
+                <el-input v-model="property_template_list.name"
                           :disabled=notEdit
                           style="width:100%;"></el-input>
               </el-form-item>
@@ -45,7 +45,7 @@
             <el-col span="8">
               <el-form-item label='物品种类'
                       class="label">
-                <el-select v-model="property_type_list.results[property_template_list.results[id-1].type-1].name"
+                <el-select v-model="property_type_list.results[property_template_list.type-1].name"
                           :disabled=notEdit>
                   <el-option v-for="item in property_type_list.results"
                             :key="item.id"
@@ -88,7 +88,7 @@
         </el-form-item>
         <el-form-item label='图片'
                       class="label">
-          <el-image style="width: 300px" :src="property_template_list.results[id-1].thumbnail" fit="fit" lazy ></el-image>
+          <el-image style="width: 300px" :src="property_template_list.thumbnail" fit="fit" lazy ></el-image>
         </el-form-item>
       </el-form>
     </el-card>
@@ -162,7 +162,7 @@ export default {
   },
   data: function () {
     return {
-      property_template_list: [],
+      property_template_list: null,
       property_type_list: [],
       template_fields_keys: [],
       template_fields: [],
@@ -173,7 +173,11 @@ export default {
       isAdmin: true,
       notEdit: true,
       inputVisible: false,
-      inputValue: ''
+      inputValue: '',
+      ruleForm: {
+        coverUrl: "",
+        coverFile: ""
+      }
       // isAdmin: this.$store.getters.isAdmin
     }
   },
@@ -192,19 +196,19 @@ export default {
     //   .catch((error) => {
     //     this.$alert(error.response.data)
     //   })
-    axios.get('/property-templates', {})
+    axios.get('/property-templates/' + this.id + '/', {})
       .then((response) => {
           this.property_template_list = response.data
-          //console.log(this.property_template_list.results[id-1])
-          this.template_fields_keys = Object.keys(this.property_template_list.results[this.id-1].fields)
+          console.log(this.property_template_list)
+          this.template_fields_keys = Object.keys(this.property_template_list.fields)
           for(var i=0;i<this.template_fields_keys.length;i++)
           {
              var arr = new Array()
              arr["key"] = this.template_fields_keys[i]
-             arr["type"] = this.property_template_list.results[this.id-1].fields[this.template_fields_keys[i]]
+             arr["type"] = this.property_template_list.fields[this.template_fields_keys[i]]
              this.template_fields.push(arr)
           }
-          console.log(Object.keys(this.property_template_list.results[this.id-1].fields))
+          console.log(Object.keys(this.property_template_list.fields))
           console.log(this.template_fields)
           console.log(this.property_template_list.results)
       })
@@ -215,7 +219,7 @@ export default {
       .then((response) => {
           this.property_type_list = response.data
           //console.log(this.property_template_list.results[id-1])
-          console.log(this.property_template_list.results[this.id-1].thumbnail)
+          console.log(this.property_template_list.thumbnail)
       })
       .catch((error) => {
         alert('error:' + error)
@@ -288,6 +292,14 @@ export default {
       //     console.log(error.request.response)
       //     this.$alert(error.response.data)
       //   })
+      axios.put('/property-templates/'+this.id+'/', this.property_template_list, {})
+        .then((response) => {
+          location.reload()
+        })
+        .catch((error) => {
+          this.$alert(error.response.data)
+        })
+      this.$message('修改成功')
       this.notEdit=true
     },
     enterEquipment: function (id) {
@@ -295,6 +307,52 @@ export default {
     },
     enterUser: function (id) {
       this.$router.push({ name: 'user', params: { userId: id } })
+    },
+    imgUrlToFile(url) {
+      var self = this;
+      var imgLink = url;
+      var tempImage = new Image();
+      //如果图片url是网络url，要加下一句代码
+      tempImage.crossOrigin = "*";
+      tempImage.onload = function() {
+        var base64 = self.getBase64Image(tempImage);
+        var imgblob = self.base64toBlob(base64);
+        var filename = self.getFileName(self.ruleForm.coverUrl);
+        self.ruleForm.coverFile = self.blobToFile(imgblob, filename);
+      };
+      tempImage.src = imgLink;
+    },
+    getBase64Image(img) {
+      var canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+      var ext = img.src.substring(img.src.lastIndexOf(".") + 1).toLowerCase();
+      var dataURL = canvas.toDataURL("image/" + ext);
+      return dataURL;
+    },
+    base64toBlob(base64) {
+      let arr = base64.split(","),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]),
+        n = bstr.length,
+        u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], { type: mime });
+    },
+    blobToFile(blob, filename) {
+      // edge浏览器不支持new File对象，所以用以下方法兼容
+      blob.lastModifiedDate = new Date();
+      blob.name = filename;
+      return blob;
+    },
+    getFileName(url) {
+      // 获取到文件名
+      let pos = url.lastIndexOf("/"); // 查找最后一个/的位置
+      return url.substring(pos + 1); // 截取最后一个/位置到字符长度，也就是截取文件名
     }
   }
 }

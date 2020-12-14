@@ -26,6 +26,8 @@
                     v-if="hasLogin === true">用户列表</el-menu-item>
       <el-menu-item index="6"
                     v-if="hasLogin === true">认证申请</el-menu-item>
+      <el-menu-item index="9"
+                    v-if="hasLogin === true">举报处理</el-menu-item>
       <el-submenu index="8"
                   v-if="hasLogin === true && isAdmin === true">
         <template slot="title">添加物品</template>

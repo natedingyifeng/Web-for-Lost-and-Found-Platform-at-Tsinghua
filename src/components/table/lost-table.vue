@@ -85,10 +85,12 @@ export default {
   },
   data: function () {
     return {
-      lostList: [
-        {id: 1, created_at: "2020.11.1 12:58", created_by: "丁一峰", lost_item: "Airpods Pro", lost_place: "第六教学楼", lost_time: "10月31日晚上八点左右", status: "未归还"},
-        {id: 2, created_at: "2020.11.2 21:23", created_by: "苏敬恒", lost_item: "Macbook Pro", lost_place: "清华学堂", lost_time: "11月2日上午十点左右", status: "未归还"}
-      ],
+      lostList: [],
+      real_author: '',
+      // lostList: [
+      //   {id: 1, created_at: "2020.11.1 12:58", created_by: "丁一峰", lost_item: "Airpods Pro", lost_place: "第六教学楼", lost_time: "10月31日晚上八点左右", status: "未归还"},
+      //   {id: 2, created_at: "2020.11.2 21:23", created_by: "苏敬恒", lost_item: "Macbook Pro", lost_place: "清华学堂", lost_time: "11月2日上午十点左右", status: "未归还"}
+      // ],
       options: [
         { value: 'search', label: '全部搜索' },
         { value: 'creator', label: '筛选：创建者' },
@@ -121,11 +123,88 @@ export default {
     //       alert('error:' + error)
     //     })
     // }
+    Axios.get('/lost-notices/', {})
+      .then((response) => {
+          this.lostList = response.data
+          // console.log(this.foundList)
+          //console.log(this.property_template_list.results[id-1])
+          for(var i=0;i<this.lostList.results.length;i++)
+          {
+            let lost_datetime = this.lostList.results[i].lost_datetime
+            let created_at = this.lostList.results[i].created_at
+            let updated_at = this.lostList.results[i].updated_at
+            this.lostList.results[i].lost_datetime=this.extractTime(lost_datetime)
+            this.lostList.results[i].created_at=this.extractTime(created_at)
+            this.lostList.results[i].updated_at=this.extractTime(updated_at)
+            // console.log('/users/' + this.foundList.results[i].author)
+            // let author = this.foundList.results[i].author
+            // Axios.get('/users/' + author, {})
+            //   .then((response) => {
+            //       _this.real_author = response.data
+            //       console.log(_this.real_author)
+            //       // console.log(this.foundList.results[i].author)
+            //   })
+            //   .catch((error) => {
+            //     console.log(error)
+            //     // alert('error:' + error)
+            //   })
+            // console.log(_this.real_author)
+            // this.foundList.results[i].author = full_author
+            // console.log(this.foundList.results[i].author)
+          }
+      })
+      .catch((error) => {
+        alert('error:' + error)
+      })
+      // this.foundList.results[i].author = _this.real_author
     this.changePage(1)
   },
   methods: {
     enter: function (row) {
       this.$router.push({ name: 'lost', params: { lostId: row.id } })
+    },
+    extractTime(time){
+      let date=time.split("T");
+      let day=date[0].split("-");
+      let hour=date[1].split("+");
+      let specificTime=hour[0].split(":");
+      let today = new Date();
+      let yesterday = new Date();
+      let yesyesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+      yesyesterday.setDate(today.getDate() - 2);
+      let result;
+      if(Number(today.getFullYear())===Number(day[0]) && Number(today.getMonth()+1)===Number(day[1]) && Number(today.getDate())===Number(day[2]))
+      {
+        if(Number(today.getHours())===Number(specificTime[0])
+        || (Number(today.getHours())===Number(specificTime[0])+1 && today.getMinutes()<Number(specificTime[0])))
+        {
+          let interval=Number(today.getMinutes())<Number(specificTime[1])?60+Number(today.getMinutes())-Number(specificTime[1]):Number(today.getMinutes())-Number(specificTime[1]);
+          if(interval===0) result="不到1分钟前";
+          else result=String(interval)+"分钟前";
+        }
+        else result=specificTime[0]+":"+specificTime[1];
+      }
+      else if((Number(yesterday.getFullYear())===Number(day[0]) && Number(yesterday.getMonth()+1)===Number(day[1]) && Number(yesterday.getDate())===Number(day[2])))
+      {
+        result="昨天 "+specificTime[0]+":"+specificTime[1];
+      }
+      else if((Number(yesyesterday.getFullYear())===Number(day[0]) && Number(yesyesterday.getMonth()+1)===Number(day[1]) && Number(yesyesterday.getDate())===Number(day[2])))
+      {
+        result="前天 "+specificTime[0]+":"+specificTime[1];
+      }
+      else
+      {
+        if(Number(today.getFullYear())!==Number(day[0]))
+        {
+          result=date[0]+" "+specificTime[0]+":"+specificTime[1];
+        }
+        else
+        {
+          result= day[1]+"-"+day[2]+" "+specificTime[0]+":"+specificTime[1];
+        }
+      }
+      return result;
     },
     searchAndFilter: function (select, input) {
       this.select = select
