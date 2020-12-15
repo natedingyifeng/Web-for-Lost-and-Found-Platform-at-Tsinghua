@@ -161,6 +161,16 @@ const routes: Array<RouteConfig> = [
     path: '/certification-application/:certificationApplicationId',
     name: 'certification-application',
     component: () => import('../views/certification_application.vue')
+  },
+  {
+    path: '/analysis',
+    name: 'anslysis',
+    component: () => import('../views/analysis.vue')
+  },
+  {
+    path: '/create-accounts',
+    name: 'create-accounts',
+    component: () => import('../views/account.vue')
   }
 ]
 

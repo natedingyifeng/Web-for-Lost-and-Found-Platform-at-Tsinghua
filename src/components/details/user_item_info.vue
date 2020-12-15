@@ -142,23 +142,30 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-divider>全部发帖</el-divider>
-        <!-- <el-form-item label='全部发帖'> -->
-          <el-collapse accordion>
-            <el-collapse-item title="失物招领"
-                              name="1">
-              <lost-table :id="id"
-                          :pageSize=5
-                          :height=400></lost-table>
-            </el-collapse-item>
-            <el-collapse-item title="寻物启事"
-                              name="2">
-              <found-table :id="id"
-                           :pageSize=5
-                           :height=400></found-table>
-            </el-collapse-item>
-          </el-collapse>
-        <!-- </el-form-item> -->
+        <el-row>
+          <el-col :span="12">
+            <el-divider>失物招领</el-divider>
+            <el-timeline :reverse="reverse">
+              <el-timeline-item
+                v-for="(activity, index) in foundList.results"
+                :key="index"
+                :timestamp="activity.created_at">
+                <el-link target="_blank" @click="enterFoundNotice(activity.id)">{{"发布失物招领: "+activity.property.name}}</el-link>
+              </el-timeline-item>
+            </el-timeline>
+          </el-col>
+          <el-col :span="12">
+            <el-divider>寻物启事</el-divider>
+            <el-timeline :reverse="reverse">
+              <el-timeline-item
+                v-for="(activity, index) in lostList.results"
+                :key="index"
+                :timestamp="activity.created_at">
+                <el-link target="_blank" @click="enterLostNotice(activity.id)">{{"发布寻物启事: "+activity.property.name}}</el-link>
+              </el-timeline-item>
+            </el-timeline>
+          </el-col>
+        </el-row>
       </el-form>
     </el-card>
   </div>
@@ -228,6 +235,8 @@ export default {
       isAdmin: true,
       isOwner: true,
       user_data: [],
+      foundList: [],
+      lostList: [],
       data: [{
         id: 0,
         last_login: '2020.11.4 15:19',
@@ -260,6 +269,12 @@ export default {
         value: 'SUS',
         label: '已禁用'
       }],
+      Status: {
+        PUB: "公开中",
+        RET: "已归还",
+        CLS: "已关闭",
+        DFT: "草稿中"
+      },
       notEdit: true
     }
   },
@@ -287,6 +302,50 @@ export default {
       .catch((error) => {
         alert('error:' + error)
       })
+    axios.get('/found-notices/', {
+        params: {
+          author__id: this.id
+        }
+      })
+        .then((response) => {
+          this.foundList = response.data
+          for(var i=0;i<this.foundList.results.length;i++)
+          {
+            let found_datetime = this.foundList.results[i].found_datetime
+            let created_at = this.foundList.results[i].created_at
+            let updated_at = this.foundList.results[i].updated_at
+            this.foundList.results[i].found_datetime=this.extractTime(found_datetime)
+            this.foundList.results[i].created_at=this.extractTime(created_at)
+            this.foundList.results[i].updated_at=this.extractTime(updated_at)
+            this.foundList.results[i].status = this.Status[this.foundList.results[i].status]
+          }
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
+    axios.get('/lost-notices/', {
+        params: {
+          author__id: this.id
+        }
+      })
+        .then((response) => {
+          this.lostList = response.data
+          for(var i=0;i<this.lostList.results.length;i++)
+          {
+            let lost_datetime = this.lostList.results[i].lost_datetime
+            let created_at = this.lostList.results[i].created_at
+            let updated_at = this.lostList.results[i].updated_at
+            this.lostList.results[i].lost_datetime=this.extractTime(lost_datetime)
+            this.lostList.results[i].created_at=this.extractTime(created_at)
+            this.lostList.results[i].updated_at=this.extractTime(updated_at)
+            this.lostList.results[i].status = this.Status[this.lostList.results[i].status]
+          }
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
     this.changePage(1)
   },
   methods: {
@@ -394,6 +453,14 @@ export default {
     },
     enterEquipment: function (row) {
       this.$router.push({ name: 'user', params: { userId: row.id } })
+    },
+    enterFoundNotice: function (id) {
+      this.$router.push({ name: 'found', params: { foundId: id } })
+      // this.$router.push({ name: 'user', params: { userId: row.id } })
+    },
+    enterLostNotice: function (id) {
+      this.$router.push({ name: 'lost', params: { foundId: id } })
+      // this.$router.push({ name: 'user', params: { userId: row.id } })
     },
     openDialog: function () {
       this.dialogVisible = false

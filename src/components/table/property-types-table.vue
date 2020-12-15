@@ -95,12 +95,15 @@
                 @row-click="enter"
                 :height="height"
                 row-key="name"
-                :tree-props="{children: 'templates'}">
+                :tree-props="{children: 'templates'}"
+                @sort-change='sortChange'>
         <el-table-column prop="id"
+                         sortable='custom'
                          label="ID"
                          width="100">
         </el-table-column>
         <el-table-column prop="name"
+                         sortable='custom'
                          label="名称"
                          width="1000">
         </el-table-column>
@@ -176,12 +179,13 @@ export default {
       type_dialogFormVisible: false,
       type_edit_dialogFormVisible: false,
       template_dialogFormVisible: false,
+      image_visible: false,
       type_edit_id: -1,
       property_template_list: [],
       property_type_list: [],
       options: [
         { value: 'search', label: '全部搜索' },
-        { value: 'creator', label: '筛选：申请者' }
+        { value: 'name', label: '筛选：名称' }
       ],
       select: 'search',
       input: '',
@@ -229,6 +233,35 @@ export default {
     this.changePage(1)
   },
   methods: {
+    sortChange: function(column, prop, order) {
+      console.log(column + '-' + column.prop + '-' + column.order)
+      let order_prop
+      if(column.order == "descending")
+      {
+        order_prop = "-" + column.prop
+      }
+      else
+      {
+        order_prop=column.prop
+      }
+      Axios.get('/property-types', {
+        params: {
+          ordering: order_prop,
+          offset: 0,
+          limit: this.pageSize
+        }
+      })
+        .then((response) => {
+          this.property_type_list = response.data
+          console.log(this.select)
+          console.log(this.input)
+          console.log(this.property_type_list.results)
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
+    },
     handleEdit(index, row) {
       this.type_edit_dialogFormVisible = true
       this.type_edit_id = row.id
@@ -347,6 +380,23 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
+      Axios.get('/property-types', {
+        params: {
+          [this.select]: this.input,
+          offset: (page - 1) * this.pageSize,
+          limit: this.pageSize
+        }
+      })
+        .then((response) => {
+          this.property_type_list = response.data
+          console.log(this.select)
+          console.log(this.input)
+          console.log(this.property_type_list.results)
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
       // if (this.$store.getters.getUserKey === 'null') {
       //   return
       // }

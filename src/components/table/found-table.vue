@@ -10,34 +10,44 @@
                 id="users-table"
                 class="table"
                 @row-click="enter"
-                :height="height">
+                :height="height"
+                @sort-change='sortChange'>
         <el-table-column prop="id"
                          label="ID"
-                         width="80">
+                         width="80"
+                         sortable='custom'>
         </el-table-column>
         <el-table-column prop="created_at"
                          label="创建时间"
-                         width="200">
+                         width="200"
+                         sortable='custom'>
         </el-table-column>
         <el-table-column prop="author.username"
                          label="创建者"
-                         width="200">
+                         width="200"
+                         sortable='custom'>
         </el-table-column>
         <el-table-column prop="property.name"
                          label="拾取物品"
-                         width="230">
+                         width="230"
+                         sortable='custom'>
         </el-table-column>
         <el-table-column prop="found_location"
                          label="拾取地点"
-                         width="250">
+                         width="250"
+                         sortable='custom'>
         </el-table-column>
         <el-table-column prop="found_datetime"
                          label="拾取时间"
-                         width="200">
+                         width="200"
+                         sortable='custom'>
         </el-table-column>
         <el-table-column prop="status"
                          label="状态"
-                         width="130">
+                         width="130"
+                         :filters="[{ text: '公开中', value: '公开中' }, { text: '已归还', value: '已归还' }, { text: '已关闭', value: '已关闭' }, { text: '草稿中', value: '草稿中' }]"
+                         :filter-method="filterTag"
+                         filter-placement="bottom-end">
         </el-table-column>
       </el-table>
       <el-pagination background
@@ -99,7 +109,26 @@ export default {
       ],
       select: 'search',
       input: '',
-      data: { count: 0 }
+      data: { count: 0 },
+      found_notice_status_options: [{
+        value: 'PUB',
+        label: '公开中'
+      }, {
+        value: 'RET',
+        label: '已归还'
+      }, {
+        value: 'CLS',
+        label: '已关闭'
+      }, {
+        value: 'DFT',
+        label: '草稿中'
+      }],
+      Status: {
+        PUB: "公开中",
+        RET: "已归还",
+        CLS: "已关闭",
+        DFT: "草稿中"
+      }
     }
   },
   created: function () {
@@ -135,6 +164,7 @@ export default {
             this.foundList.results[i].found_datetime=this.extractTime(found_datetime)
             this.foundList.results[i].created_at=this.extractTime(created_at)
             this.foundList.results[i].updated_at=this.extractTime(updated_at)
+            this.foundList.results[i].status = this.Status[this.foundList.results[i].status]
             // console.log('/users/' + this.foundList.results[i].author)
             // let author = this.foundList.results[i].author
             // Axios.get('/users/' + author, {})
@@ -159,6 +189,45 @@ export default {
     this.changePage(1)
   },
   methods: {
+    filterTag(value, row) {
+      return row.status === value;
+    },
+    sortChange: function(column, prop, order) {
+      console.log(column + '-' + column.prop + '-' + column.order)
+      let order_prop
+      if(column.order == "descending")
+      {
+        order_prop = "-" + column.prop
+      }
+      else
+      {
+        order_prop=column.prop
+      }
+      Axios.get('/found-notices', {
+        params: {
+          ordering: order_prop,
+          offset: 0,
+          limit: this.pageSize
+        }
+      })
+        .then((response) => {
+          this.foundList = response.data
+          for(var i=0;i<this.foundList.results.length;i++)
+          {
+            let found_datetime = this.foundList.results[i].found_datetime
+            let created_at = this.foundList.results[i].created_at
+            let updated_at = this.foundList.results[i].updated_at
+            this.foundList.results[i].found_datetime=this.extractTime(found_datetime)
+            this.foundList.results[i].created_at=this.extractTime(created_at)
+            this.foundList.results[i].updated_at=this.extractTime(updated_at)
+            this.foundList.results[i].status = this.Status[this.foundList.results[i].status]
+          }
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
+    },
     enter: function (row) {
       this.$router.push({ name: 'found', params: { foundId: row.id } })
     },
@@ -211,6 +280,30 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
+      Axios.get('/found-notices', {
+        params: {
+          [this.select]: this.input,
+          offset: (page - 1) * this.pageSize,
+          limit: this.pageSize
+        }
+      })
+        .then((response) => {
+          this.foundList = response.data
+          for(var i=0;i<this.foundList.results.length;i++)
+          {
+            let found_datetime = this.foundList.results[i].found_datetime
+            let created_at = this.foundList.results[i].created_at
+            let updated_at = this.foundList.results[i].updated_at
+            this.foundList.results[i].found_datetime=this.extractTime(found_datetime)
+            this.foundList.results[i].created_at=this.extractTime(created_at)
+            this.foundList.results[i].updated_at=this.extractTime(updated_at)
+            this.foundList.results[i].status = this.Status[this.foundList.results[i].status]
+          }
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
       // if (this.$store.getters.getUserKey === 'null') {
       //   return
       // }

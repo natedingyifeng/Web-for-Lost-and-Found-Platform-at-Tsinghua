@@ -34,6 +34,8 @@
         <el-menu-item index="8-1">物品种类</el-menu-item>
         <el-menu-item index="8-2">物品模板</el-menu-item>
       </el-submenu>
+      <el-menu-item index="10"
+                    v-if="hasLogin === true && isAdmin === true">创建账号</el-menu-item>
       <el-menu-item index="3"
                     v-if="hasLogin === true && isAdmin === true">平台信息</el-menu-item>
       <el-submenu index="4"
@@ -130,6 +132,11 @@ export default {
         case '8-2': {
           this.activeIndex = '8'
           this.$router.push('/property-templates-list')
+          break
+        }
+        case '10': {
+          this.activeIndex = '10'
+          this.$router.push('/create-accounts')
           break
         }
       }

@@ -10,18 +10,22 @@
                 stripe
                 id="users-table"
                 class="table"
-                :height="height">
+                :height="height"
+                @sort-change='sortChange'>
         <el-table-column prop="id"
                         label="ID"
-                        width="40">
+                        width="80"
+                        sortable='custom'>
         </el-table-column>
         <el-table-column prop="last_name"
                         label="姓"
-                        width="80">
+                        width="80"
+                        sortable='custom'>
         </el-table-column>
         <el-table-column prop="first_name"
                         label="名"
-                        width="100">
+                        width="100"
+                        sortable='custom'>
         </el-table-column>
         <!-- <el-table-column prop="created_at"
                         label="创建时间"
@@ -29,23 +33,30 @@
         </el-table-column> -->
         <el-table-column prop="username"
                         label="昵称"
-                        width="160">
+                        width="160"
+                        sortable='custom'>
         </el-table-column>
         <el-table-column prop="date_joined"
                         label="注册时间"
-                        width="220">
+                        width="220"
+                        sortable='custom'>
         </el-table-column>
         <el-table-column prop="email"
                         label="Email"
-                        width="260">
+                        width="260"
+                        sortable='custom'>
         </el-table-column>
         <el-table-column prop="phone"
                         label="电话号码"
-                        width="260">
+                        width="220"
+                        sortable='custom'>
         </el-table-column>
         <el-table-column prop="status"
                         label="状态"
-                        width="180">
+                        width="180"
+                        :filters="[{ text: '活跃中', value: '活跃中' }, { text: '不活跃', value: '不活跃' }, { text: '已禁用', value: '已禁用' }]"
+                        :filter-method="filterTag"
+                        filter-placement="bottom-end">
         </el-table-column>
         <!-- <el-table-column prop="is_renter"
                         label="是否是租借者"
@@ -111,7 +122,22 @@ export default {
         { value: 'address', label: '筛选：地址' },
         { value: 'email', label: '筛选：邮箱' },
         { value: 'phone', label: '筛选：电话' }
-      ]
+      ],
+      status_options: [{
+        value: 'ACT',
+        label: '活跃中'
+      }, {
+        value: 'INA',
+        label: '不活跃'
+      }, {
+        value: 'SUS',
+        label: '已禁用'
+      }],
+      Status: {
+        ACT: "活跃中",
+        INA: "不活跃",
+        SUS: "已禁用"
+      }
     }
   },
   created: function () {
@@ -122,6 +148,7 @@ export default {
           {
             let joined_datetime = this.userList.results[i].date_joined
             this.userList.results[i].date_joined=this.extractTime(joined_datetime)
+            this.userList.results[i].status = this.Status[this.userList.results[i].status]
           }
           // console.log(this.property_type_list.results)
       })
@@ -131,6 +158,40 @@ export default {
     this.changePage(1)
   },
   methods: {
+    filterTag(value, row) {
+      return row.status === value;
+    },
+    sortChange: function(column, prop, order) {
+      let order_prop
+      if(column.order == "descending")
+      {
+        order_prop = "-" + column.prop
+      }
+      else
+      {
+        order_prop=column.prop
+      }
+      Axios.get('/users', {
+        params: {
+          ordering: order_prop,
+          offset: 0,
+          limit: this.pageSize
+        }
+      })
+        .then((response) => {
+          this.userList = response.data
+          for(var i=0;i<this.userList.results.length;i++)
+          {
+            let joined_datetime = this.userList.results[i].date_joined
+            this.userList.results[i].date_joined=this.extractTime(joined_datetime)
+            this.userList.results[i].status = this.Status[this.userList.results[i].status]
+          }
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
+    },
     extractTime(time){
       let date=time.split("T");
       let day=date[0].split("-");
