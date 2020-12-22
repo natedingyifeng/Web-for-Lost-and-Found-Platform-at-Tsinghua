@@ -12,7 +12,7 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
       '/api': {
-        target: 'http://xyh.iterator-traits.com/',
+        target: 'https://xyh.iterator-traits.com/api/v1/',
         secure: false,
         //ws: true,
         changeOrigin: true,

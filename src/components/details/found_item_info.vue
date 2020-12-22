@@ -19,12 +19,66 @@
                       v-if="isAdmin"
                       @click="confirm"
                       type="primary">确定</el-button>
-        <del-button :id="id"
-                    class="delete"
-                    target="rent-application"
-                    v-if="isAdmin"></del-button>
+        <el-button :id="id"
+                      target="user"
+                      class="change"
+                      v-if="isAdmin"
+                      @click="DeleteFoundNotice"
+                      type="danger">删除</el-button>
       </div>
     </el-card>
+    <el-dialog class="create_contact" title="添加联系方式" :visible.sync="create_contact_dialogFormVisible">
+      <el-form label-width="100px">
+        <el-form-item label="联系人">
+          <el-input autocomplete="off" v-model="create_contact.name"></el-input>
+        </el-form-item>
+        <el-form-item label="联系方式">
+          <el-select v-model="create_contact.method"
+                     width="50%">
+            <el-option v-for="item in found_notice_contact_type"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="内容">
+          <el-input autocomplete="off" v-model="create_contact.details"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="create_contact_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="createContact">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
+    <el-dialog class="edit_contact" title="修改联系方式" :visible.sync="edit_contact_dialogFormVisible">
+      <el-form label-width="100px">
+        <el-form-item label="联系人">
+          <el-input autocomplete="off" v-model="edit_contact.name"></el-input>
+        </el-form-item>
+        <el-form-item label="联系方式">
+          <el-select v-model="edit_contact.method"
+                     width="50%">
+            <el-option v-for="item in found_notice_contact_type"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="内容">
+          <el-input autocomplete="off" v-model="edit_contact.details"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="edit_contact_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="editContact">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
     <el-card class='card'>
       <el-form class="form"
                label-width="100px">
@@ -159,72 +213,24 @@
         </el-form-item>
         <el-form-item label='图片'
                       class="label">
-          <el-row :gutter="10">
-            <el-col v-for="url in found_notice.images" :key="url" span="7">
-              <el-image :key="url.url" :src="url.url" :preview-src-list="url.url" fit="scale-down" lazy >
-                <span class="el-upload-list__item-actions">
-                  <span
-                    class="el-upload-list__item-preview"
-                    @click="handlePictureCardPreview(url)"
-                  >
-                    <i class="el-icon-zoom-in"></i>
-                  </span>
-                  <span
-                    v-if="!disabled"
-                    class="el-upload-list__item-delete"
-                    @click="handleDownload(url)"
-                  >
-                    <i class="el-icon-download"></i>
-                  </span>
-                  <span
-                    v-if="!disabled"
-                    class="el-upload-list__item-delete"
-                    @click="handleRemove(url)"
-                  >
-                    <i class="el-icon-delete"></i>
-                  </span>
-                </span>
-              </el-image>
-            </el-col>
+          <div style="text-align: initial;margin-top: 20px;">
             <el-upload
-              action="#"
-              list-type="picture-card"
+              :class="{is_hidden:upload_show}"
+              action="none"
+              :on-preview="handleFoundImagePreview"
+              :before-remove="handleFoundImageRemoveConfirm"
               :auto-upload="false"
-              :limit="3">
-              <i slot="default" class="el-icon-plus"></i>
-              <div slot="file" slot-scope="{file}">
-                <img
-                  class="el-upload-list__item-thumbnail"
-                  :src="file.url" alt=""
-                >
-                <span class="el-upload-list__item-actions">
-                  <span
-                    class="el-upload-list__item-preview"
-                    @click="handlePictureCardPreview(file)"
-                  >
-                    <i class="el-icon-zoom-in"></i>
-                  </span>
-                  <span
-                    v-if="!disabled"
-                    class="el-upload-list__item-delete"
-                    @click="handleDownload(file)"
-                  >
-                    <i class="el-icon-download"></i>
-                  </span>
-                  <span
-                    v-if="!disabled"
-                    class="el-upload-list__item-delete"
-                    @click="handleRemove(file)"
-                  >
-                    <i class="el-icon-delete"></i>
-                  </span>
-                </span>
-              </div>
+              :limit="3"
+              :on-exceed="handleExceed"
+              list-type="picture-card"
+              :file-list="found_notice_images_urls"
+              :on-change="saveImage">
+              <i class="el-icon-plus"></i>
             </el-upload>
-          </el-row>
-          <el-dialog :visible.sync="dialogVisible">
-            <img width="100%" :src="dialogImageUrl" alt="">
-          </el-dialog>
+            <el-dialog :visible.sync="found_notice_image_visible">
+              <img width="100%" :src="found_notice_image_url" alt="">
+            </el-dialog>
+          </div>
         </el-form-item>
         <!-- <el-form-item label='图片'
                       class="label">
@@ -238,7 +244,7 @@
         <el-form-item label=''
                       class="label">
           <el-table
-            :data="found_notice.contacts"
+            :data="contact_show"
             style="width: 100%">
             <el-table-column
               prop="name"
@@ -246,34 +252,39 @@
               width="180">
             </el-table-column>
             <el-table-column
+              prop="method"
               label="渠道"
               width="180">
-              <template slot-scope="scope">
-                <el-select v-model="scope.row.method"
-                          :disabled=notEdit
-                          width="50%">
-                  <el-option v-for="item in found_notice_contact_type"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value">
-                  </el-option>
-                </el-select>
-              </template>
             </el-table-column>
             <el-table-column
               prop="details"
               label="细节"
               width="380">
             </el-table-column>
-            <el-table-column label="操作">
+            <el-table-column>
+              <template slot="header" slot-scope="scope">
+                操作
+                <!-- <i class="el-icon-circle-plus"
+                   @click="handleCreate(scope.$index, scope.row)"
+                   :disabled=notEdit></i> -->
+                <el-button
+                  size="mini"
+                  type="primary"
+                  icon="el-icon-plus"
+                  @click="handleCreate(scope.$index, scope.row)"
+                  :disabled=notEdit
+                  circle></el-button>
+              </template>
               <template slot-scope="scope">
                 <el-button
                   size="mini"
-                  @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+                  @click="handleEdit(scope.$index, scope.row)"
+                  :disabled=notEdit>编辑</el-button>
                 <el-button
                   size="mini"
                   type="danger"
-                  @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+                  @click="handleDelete(scope.$index, scope.row)"
+                  :disabled=notEdit>删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -287,7 +298,7 @@
   </div>
 </template>
 
-<style scoped>
+<style>
 .button {
   margin-top: 30px;
   left: 10%;
@@ -332,6 +343,9 @@
   margin-left: 10px;
   vertical-align: bottom;
 }
+.is_hidden .el-upload--picture-card{
+  display:none;
+}
 </style>
 
 <script>
@@ -354,6 +368,9 @@ export default {
   },
   data: function () {
     return {
+      edit_contact_dialogFormVisible: false,
+      create_contact_dialogFormVisible: false,
+      edit_contact_id: -1,
       dialogImageUrl: '',
       dialogVisible: false,
       disabled: false,
@@ -362,73 +379,17 @@ export default {
       found_notice_found_datetime: "",
       found_notice_created_at: "",
       found_notice_updated_at: "",
-      found_data: [{
-        created_at: '2020.10.29 9:32',
-        created_by: '3',
-        found_item_type: '证件',
-        found_item_name: '一张学生证',
-        found_description: '29日我在紫荆食堂丢失了一张学生证，如果有好心的同学捡到了，麻烦您与我联系，谢谢！',
-        found_time: '10月29日上午九点半',
-        found_man: '李祁',
-        found_place: '紫荆食堂',
-        found_status: '丢失中',
-        found_tags: [{
-          type: "color",
-          content: "磨损较严重"
-        }, {
-          type: "characteristic",
-          content: "没有壳子"
-        }],
-        found_urls: [
-          'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1604481835330&di=dbf01baac278a2ea9e3d98144485a5e9&imgtype=0&src=http%3A%2F%2F5b0988e595225.cdn.sohucs.com%2Fimages%2F20190629%2F9b93e03380d84eac98585d517e121f2a.jpeg'
-        ],
-        found_contact_info: [{
-          type: "QQ",
-          content: "89035689"
-        }, {
-          type: "email",
-          content: "89035689@qq.com"
-        }, {
-          type: "微信",
-          content: "yihao_xu"
-        }, {
-          type: "phone",
-          content: "18611362038"
-        }]
-      },{
-        created_at: '2020.11.1 12:14',
-        created_by: '4',
-        found_item_type: '衣服',
-        found_item_name: '一件粉色外套',
-        found_description: '1日中午我在西操跑步时丢失了一件粉色外套，如果有好心的同学捡到了，麻烦您与我联系，谢谢！',
-        found_time: '11月1日上午十点左右',
-        found_man: '徐亦豪',
-        found_place: '西操',
-        found_status: '丢失中',
-        found_tags: [{
-          type: "color",
-          content: "粉色"
-        }, {
-          type: "characteristic",
-          content: "几乎崭新"
-        }],
-        found_urls: [
-          'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2875408364,952330868&fm=26&gp=0.jpg'
-        ],
-        found_contact_info: [{
-          type: "QQ",
-          content: "89035689"
-        }, {
-          type: "email",
-          content: "89035689@qq.com"
-        }, {
-          type: "微信",
-          content: "yihao_xu"
-        }, {
-          type: "phone",
-          content: "18611362038"
-        }]
-      }],
+      contact_show: [],
+      edit_contact: {
+        name: "",
+        method: "",
+        details: ""
+      },
+      create_contact: {
+        name: "",
+        method: "",
+        details: ""
+      },
       found_notice_status_options: [{
         value: 'PUB',
         label: '公开中'
@@ -453,6 +414,11 @@ export default {
         value: "PHN",
         label: "电话"
       }],
+      Contact: {
+        WCT: "微信",
+        EML: "邮箱",
+        PHN: "电话"
+      },
       // eslint-disable-next-line eqeqeq
       isrenter: false,
       // eslint-disable-next-line eqeqeq
@@ -460,7 +426,17 @@ export default {
       isAdmin: true,
       notEdit: true,
       inputVisible: false,
-      inputValue: ''
+      inputValue: '',
+      found_notice_image_visible: false,
+      found_notice_image_url: '',
+      found_notice_images: [],
+      found_notice_images_urls: [],
+      upload_show:false,
+      found_notice_image_change: false,
+      ruleForm: {
+        coverUrl: "",
+        coverFile: ""
+      },
       // isAdmin: this.$store.getters.isAdmin
     }
   },
@@ -479,10 +455,15 @@ export default {
     //   .catch((error) => {
     //     this.$alert(error.response.data)
     //   })
-    axios.get('/found-notices/'+this.id, {})
+    axios.get('/found-notices/'+this.id, {
+      // headers: {
+      //   Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      // }
+    })
       .then((response) => {
           this.found_notice = response.data
           this.found_notice_origin = response.data
+          this.contact_show = JSON.parse(JSON.stringify(this.found_notice.contacts))
           let found_datetime = this.found_notice.found_datetime
           let created_at = this.found_notice.created_at
           let updated_at = this.found_notice.updated_at
@@ -492,13 +473,33 @@ export default {
           this.found_notice_found_datetime=found_datetime
           this.found_notice_created_at=created_at
           this.found_notice_updated_at=updated_at
+          for(let i=0;i<this.contact_show.length;i++)
+          {
+            this.contact_show[i].method=this.Contact[this.contact_show[i].method]
+          }
+          if(this.found_notice.images.length == 3)
+          {
+            this.upload_show = true
+          }
+          for(let i=0;i<this.found_notice.images.length;i++)
+          {
+            // this.ruleForm.push({coverUrl: "", coverFile: ""})
+            // this.imgUrlToFile(this.found_notice.images[i].url, i)
+            this.found_notice_images_urls.push({url: this.found_notice.images[i].url})
+            // console.log(this.found_notice_images_urls)
+            this.found_notice_images.push({url: this.found_notice.images[i].url})
+          }
           //console.log(this.property_template_list.results[id-1])
           console.log(this.found_notice)
       })
       .catch((error) => {
         alert('error:' + error)
       })
-    axios.get('/property-templates', {})
+    axios.get('/property-templates', {
+      // headers: {
+      //   Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      // }
+    })
       .then((response) => {
           this.found_notice_item_options = response.data.results
       })
@@ -508,6 +509,230 @@ export default {
     this.changePage(1)
   },
   methods: {
+    DeleteFoundNotice() {
+      axios.delete('/found-notices/' + this.id + '/', {})
+      .then((response) => {
+        this.$router.push('/found-list')
+      })
+      .catch((error) => {
+        alert('error:' + error)
+      })
+    },
+    checkPhoneValidation(phone){
+      if(phone != '')
+      {
+        if (/^1[34578]\d{9}$/.test(phone) == false) {
+          alert('error: 手机号格式错误!')
+          return false
+        }
+      }
+      return true
+    },
+    checkEmailValidation(email){
+      if(email != '')
+      {
+        if (/^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/.test(email) == false) {
+          alert('error: 邮箱地址格式错误!')
+          return false
+        }
+      }
+      return true
+    },
+    checkContactValidation(){
+      if(this.create_contact.method == "EML")
+      {
+        return this.checkEmailValidation(this.create_contact.details)
+      }
+      else if(this.create_contact.method == "PHN")
+      {
+        return this.checkPhoneValidation(this.create_contact.details)
+      }
+      else if(this.edit_contact.method == "EML")
+      {
+        return this.checkEmailValidation(this.edit_contact.details)
+      }
+      else if(this.edit_contact.method == "PHN")
+      {
+        return this.checkPhoneValidation(this.edit_contact.details)
+      }
+      else{
+        return true
+      }
+    },
+    imgUrlToFile(url, i) {
+      var self = this;
+      var imgLink = url;
+      var tempImage = new Image();
+      //如果图片url是网络url，要加下一句代码
+      tempImage.crossOrigin = "*";
+      tempImage.onload = function() {
+        var base64 = self.getBase64Image(tempImage);
+        var imgblob = self.base64toBlob(base64);
+        var filename = self.getFileName(self.ruleForm[i].coverUrl);
+        this.ruleForm[i].coverFile = self.blobToFile(imgblob, filename);
+      };
+      tempImage.src = imgLink;
+    },
+    getBase64Image(img) {
+      var canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+      var ext = img.src.substring(img.src.lastIndexOf(".") + 1).toLowerCase();
+      var dataURL = canvas.toDataURL("image/" + ext);
+      return dataURL;
+    },
+    base64toBlob(base64) {
+      let arr = base64.split(","),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]),
+        n = bstr.length,
+        u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], { type: mime });
+    },
+    blobToFile(blob, filename) {
+      // edge浏览器不支持new File对象，所以用以下方法兼容
+      blob.lastModifiedDate = new Date();
+      blob.name = filename;
+      return blob;
+    },
+    getFileName(url) {
+      // 获取到文件名
+      let pos = url.lastIndexOf("/"); // 查找最后一个/的位置
+      return url.substring(pos + 1); // 截取最后一个/位置到字符长度，也就是截取文件名
+    },
+    handleFoundImagePreview(file) {
+      this.found_notice_image_url = file.url
+      this.found_notice_image_visible = true
+    },
+    handleFoundImageRemove(file) {
+      let index = -1
+      for(let i=0;i<this.found_notice_images_urls.length;i++)
+      {
+        if(this.found_notice_images_urls[i].url == file.url)
+        {
+          index = i
+        }
+      }
+      let data=new FormData();
+      let that=this
+      data.append('url', this.found_notice_images_urls[index].url)
+      console.log(data)
+      axios({
+        url: '/found-notices/delete-image/',
+        method: 'post',
+        data: data
+      })
+        .then((response) => {
+          that.found_notice_images.splice(index, 1);
+          that.found_notice.images.splice(index, 1);
+          that.found_notice_origin.images.splice(index, 1);
+          that.found_notice_images_urls.splice(index, 1);
+          if(that.found_notice_images_urls.length < 3)
+          {
+            that.upload_show = false
+          }
+          console.log(that.found_notice.images)
+        })
+        .catch((error) => {
+          alert('error:' + error)
+        })
+      axios.put('/found-notices/'+this.id+'/', this.found_notice_origin, {})
+        .then((response) => {
+          if(this.found_notice.images.length == 0)
+          {
+            this.upload_show = false
+          }
+        })
+        .catch((error) => {
+          this.$alert(error.response.data)
+        })
+      console.log(index)
+      this.$message({
+        type: 'success',
+        message: '删除成功!'
+      });
+    },
+    handleFoundImageRemoveConfirm(file) {
+      this.$confirm('此操作将删除该图片, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.handleFoundImageRemove(file)
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+      return false
+    },
+    saveImage(file,fileList) {
+      this.found_notice_images_urls.push({url:file.url})
+      this.found_notice_images.push(file.raw)
+      this.found_notice_image_change = true
+      if(this.found_notice.images.length + this.found_notice_images.length > 3)
+      {
+        this.upload_show = true
+      }
+      console.log(this.found_notice_images)
+    },
+    handleExceed(files, fileList) {
+      this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+    },
+    createContact() {
+      if(this.checkContactValidation() == true)
+      {
+        let tem = JSON.parse(JSON.stringify(this.create_contact))
+        this.found_notice.contacts.push(tem)
+        this.contact_show = JSON.parse(JSON.stringify(this.found_notice.contacts))
+        for(let i=0;i<this.contact_show.length;i++)
+        {
+          this.contact_show[i].method=this.Contact[this.contact_show[i].method]
+        }
+        this.create_contact.name = ""
+        this.create_contact.method = ""
+        this.create_contact.details = ""
+        this.create_contact_dialogFormVisible = false
+      }
+    },
+    editContact() {
+      if(this.checkContactValidation() == true)
+      {
+        this.found_notice.contacts.splice(this.edit_contact_id, 1)
+        let tem = JSON.parse(JSON.stringify(this.edit_contact))
+        this.found_notice.contacts.push(tem)
+        this.contact_show = JSON.parse(JSON.stringify(this.found_notice.contacts))
+        for(let i=0;i<this.contact_show.length;i++)
+        {
+          this.contact_show[i].method=this.Contact[this.contact_show[i].method]
+        }
+        this.edit_contact.name = ""
+        this.edit_contact.method = ""
+        this.edit_contact.details = ""
+        this.edit_contact_dialogFormVisible = false
+      }
+    },
+    handleEdit(index, row) {
+      this.edit_contact_dialogFormVisible = true
+      this.edit_contact_id = index
+    },
+    handleCreate(index, row) {
+      this.create_contact_dialogFormVisible = true
+    },
+    handleDelete(index, row) {
+      this.found_notice.contacts.splice(index, 1)
+      this.contact_show = JSON.parse(JSON.stringify(this.found_notice.contacts))
+      for(let i=0;i<this.contact_show.length;i++)
+      {
+        this.contact_show[i].method=this.Contact[this.contact_show[i].method]
+      }
+    },
     handleRemove(file) {
       console.log(file);
     },
@@ -600,7 +825,9 @@ export default {
       }
       let is_edited = false
       this.$set(this.found_notice, "found_datetime", this.found_notice_found_datetime)
-      axios.put('/found-notices/'+this.id+'/', this.found_notice, {})
+      if(this.template_image_change == false)
+      {
+        axios.put('/found-notices/'+this.id+'/', this.found_notice, {})
         .then((response) => {
           is_edited = true
           location.reload()
@@ -608,6 +835,35 @@ export default {
         .catch((error) => {
           this.$alert(error.response.data)
         })
+      }
+      else
+      {
+        let data=new FormData();
+        data.append('id', this.found_notice.id)
+        data.append('contacts', this.found_notice.contacts)
+        data.append('property', this.found_notice.property)
+        data.append('author', this.found_notice.author)
+        data.append('matching_entries', this.found_notice.matching_entries)
+        data.append('description', this.found_notice.description)
+        data.append('found_datetime', this.found_notice.found_datetime)
+        data.append('found_location', this.found_notice.found_location)
+        data.append('quizzes', this.found_notice.quizzes)
+        data.append('status', this.found_notice.status)
+        data.append('return_datetime', this.found_notice.return_datetime)
+        data.append('extra', this.found_notice.extra)
+        data.append('created_at', this.found_notice.created_at)
+        data.append('updated_at', this.found_notice.updated_at)
+        data.append('return_user', this.found_notice.return_user)
+        data.append('images', this.found_notice_images)
+        axios.put('/found-notices/'+this.id+'/', data, {})
+        .then((response) => {
+          is_edited = true
+          location.reload()
+        })
+        .catch((error) => {
+          this.$alert(error.response.data)
+        })
+      }
       this.$message('修改成功')
       this.notEdit=true
     },

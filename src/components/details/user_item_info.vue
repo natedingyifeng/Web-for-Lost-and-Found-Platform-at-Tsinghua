@@ -19,17 +19,32 @@
                       v-if="isAdmin"
                       @click="confirm"
                       type="primary">确定</el-button>
+        <el-button :id="id"
+                    :data="data"
+                    target="user"
+                    class="change"
+                    v-if="isAdmin"
+                    @click="block_dialogFormVisible=true"
+                    type="danger">封禁</el-button>
         <del-button :id="id"
                     class="delete"
                     target="user"
                     v-if="isAdmin"></del-button>
       </div>
     </el-card>
-    <chat-dialog ref="dialog"
-                 :myId=0
-                 :opposite="id"
-                 :name="user_data.last_name+' '+user_data.first_name"
-                 :dialogVisible.sync="dialogVisible"></chat-dialog>
+    <el-dialog class="new_type" title="封禁原因" :visible.sync="block_dialogFormVisible">
+      <el-form label-width="100px">
+        <el-form-item label="封禁原因">
+          <el-input autocomplete="off" v-model="block_content" type='textarea'></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="block_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="blockUser">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
     <el-card class='card'>
       <el-form class="form"
                label-width="100px">
@@ -232,6 +247,8 @@ export default {
     return {
       // isOwner: (this.id === this.$store.getters.getCurrentUser.id),
       // isAdmin: this.$store.getters.isAdmin,
+      block_dialogFormVisible: false,
+      block_content: '',
       isAdmin: true,
       isOwner: true,
       user_data: [],
@@ -349,6 +366,18 @@ export default {
     this.changePage(1)
   },
   methods: {
+    blockUser(){
+      this.user_data.status="SUS"
+      axios.put('/users/'+this.id+'/', this.user_data, {})
+        .then((response) => {
+          location.reload()
+        })
+        .catch((error) => {
+          this.$alert(error.response.data)
+        })
+      this.$message('修改成功')
+      this.notEdit=true
+    },
     extractTime(time){
       let date=time.split("T");
       let day=date[0].split("-");

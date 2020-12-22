@@ -3,25 +3,25 @@
   <div>
     <el-card class="title_card"
              style="font-size:24px;">
-      {{'认证申请#' + this.id }}
+      {{'举报信息#' + this.id }}
       <div class="edit">
         <el-button :id="id"
                         target="user"
                         class="change"
                         v-if="isAdmin"
-                        @click="AcceptApplication"
+                        @click="AcceptReport"
                         type="primary">通过</el-button>
         <el-button :id="id"
                       target="user"
                       class="change"
                       v-if="isAdmin"
-                      @click="RejectApplication"
+                      @click="RejectReport"
                       type="primary">否决</el-button>
         <el-button :id="id"
                       target="user"
                       class="change"
                       v-if="isAdmin"
-                      @click="DeleteApplication"
+                      @click="DeleteReport"
                       type="danger">删除</el-button>
       </div>
     </el-card>
@@ -32,7 +32,7 @@
         <el-form-item label='ID'>
           <el-row>
             <el-col span="4">
-              <el-input v-model="verification_application.id"
+              <el-input v-model="report.id"
                         disabled=false
                         style="width:100%;"></el-input>
             </el-col>
@@ -40,7 +40,7 @@
               <el-form-item label='创建时间'
                             class="label">
                 <el-date-picker
-                  v-model="verification_application.created_at"
+                  v-model="report.created_at"
                   type="datetime"
                   placeholder="创建时间"
                   format="yyyy-MM-dd HH:mm:ss"
@@ -52,7 +52,7 @@
               <el-form-item label='最近更新'
                             class="label">
                 <el-date-picker
-                  v-model="verification_application.updated_at"
+                  v-model="report.updated_at"
                   type="datetime"
                   placeholder="更新时间"
                   format="yyyy-MM-dd HH:mm:ss"
@@ -61,30 +61,57 @@
               </el-form-item>
             </el-col>
             <el-col span="6">
-              <el-form-item label='申请人'>
-                <el-input v-model="applicant" disabled=false></el-input>
+              <el-form-item label='举报人'>
+                <el-input v-model="report.submit_user.username" disabled=false></el-input>
               </el-form-item>
             </el-col>
           </el-row>
         </el-form-item>
-        <el-divider>申请内容</el-divider>
-        <el-form-item label='申请内容'
+        <el-divider>举报内容</el-divider>
+        <el-form-item label='被举报人'
                       class="label">
-          <el-input v-model="verification_application.description"
+          <el-row>
+            <el-col span="4">
+              <el-input v-model="report.user.username" disabled=false></el-input>
+            </el-col>
+            <el-col span="6">
+              <el-form-item label='被举报寻物启事'
+                    class="label"
+                    label-width="140px">
+                <el-link target="_blank" :underline="false" :disabled="!report.lost_notice" @click="enterLostNotice(report.lost_notice)">{{"寻物启事#"+report.lost_notice}}<i class="el-icon-view el-icon--right"></i></el-link>
+              </el-form-item>
+            </el-col>
+            <el-col span="6">
+              <el-form-item label='被举报失物招领'
+                      class="label"
+                      label-width="140px">
+                <el-link target="_blank" :underline="false" :disabled="!report.found_notice" @click="enterFoundNotice(report.found_notice)">{{"寻物启事#"+report.found_notice}}<i class="el-icon-view el-icon--right"></i></el-link>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form-item>
+        <el-form-item label='举报内容'
+                      class="label">
+          <el-input v-model="report.description"
                     type='textarea'
                     disabled=false></el-input>
         </el-form-item>
-        <el-form-item label='申请附件'
+        <el-form-item label='举报内容'
                       class="label">
-          <el-link :href="verification_application.supporting_document" target="_blank" :underline="false" :disabled="!verification_application.supporting_document">查看<i class="el-icon-view el-icon--right"></i></el-link>
+          <el-select v-model="report.type"
+                     disabled=false>
+            <el-option v-for="item in type_options"
+                       :key="item.value"
+                       :label="item.label"
+                       :value="item.value">
+            </el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label='状态'
                       class="label">
-          <!-- <el-input v-model="data.status"
-                    :disabled="diseditable"></el-input> -->
-          <el-select v-model="verification_application.status"
+          <el-select v-model="report.verdict_type"
                      disabled=false>
-            <el-option v-for="item in applications_status_options"
+            <el-option v-for="item in status_options"
                        :key="item.value"
                        :label="item.label"
                        :value="item.value">
@@ -161,41 +188,66 @@ export default {
       isOwner: true,
       dialogVisible: false,
       status_options: [{
-        value: 'UNA',
-        label: '未通过'
+        value: 'GUI',
+        label: '有罪'
       }, {
-        value: 'ACC',
-        label: '已通过'
+        value: 'INN',
+        label: '无罪'
+      }, {
+        value: 'UNT',
+        label: '未处理'
       }],
       notEdit: true,
-      verification_application: {},
-      applications_status_options: [{
-        value: 'ACC',
-        label: '通过'
+      report: {},
+      type_options: [{
+        value: 'SCM',
+        label: '诈骗行为'
       }, {
-        value: 'REJ',
-        label: '拒绝'
+        value: 'HRS',
+        label: '恶意骚扰'
       }, {
-        value: 'TBD',
-        label: '未处理'
+        value: 'ADV',
+        label: '推销广告'
+      }, {
+        value: 'PRN',
+        label: '低俗色情'
+      }, {
+        value: 'ILL',
+        label: '违法信息'
+      }, {
+        value: 'SPM',
+        label: '垃圾内容'
+      }, {
+        value: 'CPY',
+        label: '侵权行为'
+      }, {
+        value: 'OTH',
+        label: '其他'
       }],
       applicant: ''
     }
   },
   created: function () {
-    axios.get('/user-verification-applications/'+ this.id +'/', {})
+    axios.get('/reports/'+ this.id +'/', {})
     .then((response) => {
-      this.verification_application = response.data
-      this.getUserName(this.verification_application.user)
+      this.report = response.data
     })
     .catch((error) => {
       alert('error:' + error)
     })
   },
   methods: {
-    AcceptApplication() {
-      this.verification_application.status = "ACC"
-      axios.put('/user-verification-applications/' + this.id + '/', this.verification_application, {})
+    enterFoundNotice: function (id) {
+      this.$router.push({ name: 'found', params: { foundId: id } })
+      // this.$router.push({ name: 'user', params: { userId: row.id } })
+    },
+    enterLostNotice: function (id) {
+      this.$router.push({ name: 'lost', params: { lostId: id } })
+      // this.$router.push({ name: 'user', params: { userId: row.id } })
+    },
+    AcceptReport() {
+      this.report.verdict_type = "GUI"
+      axios.put('/reports/' + this.id + '/', this.report, {})
       .then((response) => {
         location.reload()
       })
@@ -203,9 +255,9 @@ export default {
         alert('error:' + error)
       })
     },
-    RejectApplication() {
-      this.verification_application.status = "REJ"
-      axios.put('/user-verification-applications/' + this.id + '/', this.verification_application, {})
+    RejectReport() {
+      this.report.verdict_type = "INN"
+      axios.put('/reports/' + this.id + '/', this.report, {})
       .then((response) => {
         location.reload()
       })
@@ -213,19 +265,10 @@ export default {
         alert('error:' + error)
       })
     },
-    DeleteApplication() {
-      axios.delete('/user-verification-applications/' + this.id + '/', {})
+    DeleteReport() {
+      axios.delete('/reports/' + this.id + '/', {})
       .then((response) => {
-        this.$router.push('/certification-application-list')
-      })
-      .catch((error) => {
-        alert('error:' + error)
-      })
-    },
-    getUserName(id) {
-      axios.get('/users/' + id + '/', {})
-      .then((response) => {
-        this.applicant = response.data.username
+        this.$router.push('/report-list')
       })
       .catch((error) => {
         alert('error:' + error)

@@ -58,44 +58,53 @@
           </el-row>
         </el-form-item>
         <el-divider>具体内容</el-divider>
-        <el-form-item label='Fields'
+        <el-form-item label='模板属性'
                       class="label">
-          <el-table
-            :data="template_fields"
-            style="width: 50%">
-            <el-table-column
-              prop="key"
-              label="Key"
-              width="180">
-            </el-table-column>
-            <el-table-column
-              prop="type"
-              label="Type"
-              width="180">
-            </el-table-column>
-            <el-table-column label="操作">
-              <template slot-scope="scope">
-                <el-button
-                  size="mini"
-                  @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                <el-button
-                  size="mini"
-                  type="danger"
-                  @click="handleDelete(scope.$index, scope.row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+          <el-tag v-for="item in template_fields" 
+                  :disable-transitions="false"
+                  :closable=!notEdit
+                  :key="item" 
+                  @close="handleClose(item)"
+                  :disabled=!notEdit>{{item.name}}</el-tag>
+          <el-input
+            class="input-new-tag"
+            v-if="inputVisible"
+            v-model="inputValue"
+            ref="saveTagInput"
+            size="small"
+            @keyup.enter.native="handleInputConfirm"
+            @blur="handleInputConfirm"
+            style="width:10%;"
+            :disabled=notEdit></el-input>
+          <el-button v-else class="button-new-tag" size="small" @click="showInput" :disabled=notEdit>+ New Tag</el-button>
         </el-form-item>
         <el-form-item label='图片'
                       class="label">
-          <el-image style="width: 300px" :src="property_template_list.thumbnail" fit="fit" lazy ></el-image>
+          <div style="text-align: initial;margin-top: 20px;">
+            <el-upload
+              :class="{is_hidden:upload_show}"
+              action="none"
+              :on-preview="handleTemplateImagePreview"
+              :on-remove="handleTemplateImageRemove"
+              :auto-upload="false"
+              :limit="1"
+              :on-exceed="handleExceed"
+              list-type="picture-card"
+              :file-list="template_images"
+              :on-change="saveImage">
+              <i class="el-icon-plus"></i>
+            </el-upload>
+            <el-dialog :visible.sync="template_image_visible">
+              <img width="100%" :src="template_image_url" alt="">
+            </el-dialog>
+          </div>
         </el-form-item>
       </el-form>
     </el-card>
   </div>
 </template>
 
-<style scoped>
+<style>
 .button {
   margin-top: 30px;
   left: 10%;
@@ -140,6 +149,9 @@
   margin-left: 10px;
   vertical-align: bottom;
 }
+.is_hidden .el-upload--picture-card{
+  display:none;
+}
 </style>
 
 <script>
@@ -154,7 +166,6 @@ export default {
     'change-button': changeButton,
     'rej-button': rejButton,
     'approve-button': approveButton,
-
     'del-button': delButton
   },
   props: {
@@ -177,40 +188,39 @@ export default {
       ruleForm: {
         coverUrl: "",
         coverFile: ""
-      }
+      },
+      inputVisible: false,
+      inputValue: '',
+      ruleForm: {
+        coverUrl: "",
+        coverFile: ""
+      },
+      template_images: [],
+      template_image_visible: false,
+      template_image_url: '',
+      template_image_change: false,
+      upload_show:false
       // isAdmin: this.$store.getters.isAdmin
     }
   },
   created: function () {
-    // axios.get('/api/v1/rent-application/' + this.id, {
-    //   headers: {
-    //     Authorization: 'Token ' + this.$store.getters.getUserKey
-    //   }
-    // })
-    //   .then((response) => {
-    //     this.rent_data = response.data
-    //     this.isrenter = this.rent_data.renter === this.$store.getters.getCurrentUser.id
-    //     this.isborrower = this.rent_data.borrower === this.$store.getters.getCurrentUser.id
-    //     console.log(this.isborrower)
-    //   })
-    //   .catch((error) => {
-    //     this.$alert(error.response.data)
-    //   })
     axios.get('/property-templates/' + this.id + '/', {})
       .then((response) => {
           this.property_template_list = response.data
-          console.log(this.property_template_list)
+          this.imgUrlToFile(this.property_template_list.thumbnail)
+          this.template_images.push({url: this.property_template_list.thumbnail})
+          if(this.template_images.length != 0)
+          {
+            this.upload_show = true
+          }
+          console.log(this.upload_show)
           this.template_fields_keys = Object.keys(this.property_template_list.fields)
           for(var i=0;i<this.template_fields_keys.length;i++)
           {
-             var arr = new Array()
-             arr["key"] = this.template_fields_keys[i]
-             arr["type"] = this.property_template_list.fields[this.template_fields_keys[i]]
+             var arr = {}
+             arr["name"] = this.template_fields_keys[i]
              this.template_fields.push(arr)
           }
-          console.log(Object.keys(this.property_template_list.fields))
-          console.log(this.template_fields)
-          console.log(this.property_template_list.results)
       })
       .catch((error) => {
         alert('error:' + error)
@@ -218,8 +228,6 @@ export default {
     axios.get('/property-types', {})
       .then((response) => {
           this.property_type_list = response.data
-          //console.log(this.property_template_list.results[id-1])
-          console.log(this.property_template_list.thumbnail)
       })
       .catch((error) => {
         alert('error:' + error)
@@ -227,87 +235,6 @@ export default {
     this.changePage(1)
   },
   methods: {
-    handleClose(tag) {
-      this.found_data[this.id-1].found_tags.splice(this.found_data[this.id-1].found_tags.indexOf(tag), 1);
-    },
-    showInput() {
-      this.inputVisible = true;
-      this.$nextTick(_ => {
-        this.$refs.saveTagInput.$refs.input.focus();
-      });
-    },
-    handleInputConfirm() {
-      let inputValue = this.inputValue;
-      if (inputValue) {
-        this.found_data[this.id-1].found_tags.push({type: inputValue, content: inputValue});
-      }
-      this.inputVisible = false;
-      this.inputValue = '';
-    },
-    change: function () {
-      // const newData = {}
-      // for (const key in this.data) {
-      //   if (this.data[key] !== '') {
-      //     newData[key] = this.data[key]
-      //   }
-      // }
-
-      // Axios.patch('/api/v1/' + this.target + '/' + this.id + '/', newData, {
-      //   headers: {
-      //     Authorization: 'Token ' + this.$store.getters.getUserKey
-      //   }
-      // })
-      //   .then((response) => {
-      //     location.reload()
-      //     this.$message('修改成功')
-      //     // this.$router.push({ name: 'admin' })
-      //   })
-      //   .catch((error) => {
-      //     console.log(error.response)
-      //     console.log(error.request.response)
-      //     this.$alert(error.response.data)
-      //   })
-      this.notEdit=false
-    },
-    confirm: function () {
-      // const newData = {}
-      // for (const key in this.data) {
-      //   if (this.data[key] !== '') {
-      //     newData[key] = this.data[key]
-      //   }
-      // }
-
-      // Axios.patch('/api/v1/' + this.target + '/' + this.id + '/', newData, {
-      //   headers: {
-      //     Authorization: 'Token ' + this.$store.getters.getUserKey
-      //   }
-      // })
-      //   .then((response) => {
-      //     location.reload()
-      //     this.$message('修改成功')
-      //     // this.$router.push({ name: 'admin' })
-      //   })
-      //   .catch((error) => {
-      //     console.log(error.response)
-      //     console.log(error.request.response)
-      //     this.$alert(error.response.data)
-      //   })
-      axios.put('/property-templates/'+this.id+'/', this.property_template_list, {})
-        .then((response) => {
-          location.reload()
-        })
-        .catch((error) => {
-          this.$alert(error.response.data)
-        })
-      this.$message('修改成功')
-      this.notEdit=true
-    },
-    enterEquipment: function (id) {
-      this.$router.push({ name: 'equipment', params: { equipmentId: id } })
-    },
-    enterUser: function (id) {
-      this.$router.push({ name: 'user', params: { userId: id } })
-    },
     imgUrlToFile(url) {
       var self = this;
       var imgLink = url;
@@ -318,7 +245,7 @@ export default {
         var base64 = self.getBase64Image(tempImage);
         var imgblob = self.base64toBlob(base64);
         var filename = self.getFileName(self.ruleForm.coverUrl);
-        self.ruleForm.coverFile = self.blobToFile(imgblob, filename);
+        this.ruleForm.coverFile = self.blobToFile(imgblob, filename);
       };
       tempImage.src = imgLink;
     },
@@ -353,6 +280,91 @@ export default {
       // 获取到文件名
       let pos = url.lastIndexOf("/"); // 查找最后一个/的位置
       return url.substring(pos + 1); // 截取最后一个/位置到字符长度，也就是截取文件名
+    },
+    handleClose(tag) {
+      this.template_fields.splice(this.template_fields.indexOf(tag), 1);
+    },
+    showInput() {
+      this.inputVisible = true;
+      this.$nextTick(_ => {
+        this.$refs.saveTagInput.$refs.input.focus();
+      });
+    },
+    handleInputConfirm() {
+      let inputValue = this.inputValue;
+      if (inputValue) {
+        this.template_fields.push({name: inputValue});
+      }
+      this.inputVisible = false;
+      this.inputValue = '';
+    },
+    handleTemplateImagePreview(file) {
+      this.template_image_url = file.url
+      this.template_image_visible = true
+    },
+    handleTemplateImageRemove(file) {
+      this.template_images.splice(this.template_images.indexOf({url:file.url}), 1);
+      if(this.template_images.length == 0)
+      {
+        this.upload_show = false
+      }
+    },
+    saveImage(file,fileList) {
+      this.template_images.push({url:file.url})
+      this.property_template_list.thumbnail=file
+      this.template_image_change = true
+      if(this.template_images.length != 0)
+      {
+        this.upload_show = true
+      }
+    },
+    handleExceed(files, fileList) {
+      this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+    },
+    change: function () {
+      this.notEdit=false
+    },
+    confirm: function () {
+      var json = {}
+      for(var i=0;i<this.template_fields.length;i++)
+      {
+        json[this.template_fields[i].name]=""
+      }
+      this.property_template_list.fields = json
+      if(this.template_image_change == false)
+      {
+        this.property_template_list.thumbnail = this.ruleForm.coverFile.raw
+        axios.put('/property-templates/'+this.id+'/', this.property_template_list, {})
+        .then((response) => {
+          location.reload()
+        })
+        .catch((error) => {
+          this.$alert(error.response.data)
+        })
+      }
+      else
+      {
+        let data=new FormData();
+        data.append('name', this.property_template_list.name)
+        data.append('type', this.property_template_list.type)
+        data.append('thumbnail', this.property_template_list.thumbnail.raw)
+        data.append('fields', JSON.stringify(this.property_template_list.fields))
+        axios.put('/property-templates/'+this.id+'/', data, {})
+        .then((response) => {
+          location.reload()
+        })
+        .catch((error) => {
+          this.$alert(error.response.data)
+        })
+      }
+      this.$message('修改成功')
+      this.notEdit=true
+    },
+    enterEquipment: function (id) {
+      this.$router.push({ name: 'equipment', params: { equipmentId: id } })
+    },
+    enterUser: function (id) {
+      this.$router.push({ name: 'user', params: { userId: id } })
     }
   }
 }

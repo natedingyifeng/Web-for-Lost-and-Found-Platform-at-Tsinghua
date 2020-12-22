@@ -7,8 +7,10 @@ export default new Vuex.Store({
   state: {
     // userId: null, // 用户id
     // userEmail: null, // 用户email
-    userKey: null, // 用户key
-    isAdmin: false,
+    userAccessToken: null, // 用户key
+    userRefreshToken: null, // 用户key
+    navIndex: 0,
+    hasLogin: false,
     user: {
     }
     // hasLogin: false, // 登录状态
@@ -17,9 +19,19 @@ export default new Vuex.Store({
     // isOverdue: false // 是否登录过期
   },
   mutations: {
-    setUserKey (state, userKey) {
-      state.userKey = userKey
-      localStorage.userKey = userKey
+    setUserToken (state, token) {
+      state.userAccessToken = token.access
+      state.userRefreshToken = token.refresh
+      localStorage.userAccessToken = token.access
+      localStorage.userRefreshToken = token.refresh
+    },
+    setUserLoginStatus (state, status) {
+      state.hasLogin = status
+      localStorage.hasLogin = status
+    },
+    setNavIndex (state, index){
+      state.navIndex = index
+      localStorage.navIndex = index
     }
     // setCurrentUser (state, payload) {
     //   state.user = payload.user
@@ -42,11 +54,29 @@ export default new Vuex.Store({
 
   },
   getters: {
-    getUserKey (state) {
-      if (localStorage.userKey) {
-        state.userKey = localStorage.userKey
+    getUserAccessToken (state) {
+      if (localStorage.userAccessToken) {
+        state.userAccessToken = localStorage.userAccessToken
       }
-      return state.userKey
+      return state.userAccessToken
+    },
+    getUserRefreshToken (state) {
+      if (localStorage.userAccessToken) {
+        state.userRefreshToken = localStorage.userRefreshToken
+      }
+      return state.userRefreshToken
+    },
+    getUserLoginStatus (state) {
+      if (localStorage.hasLogin) {
+        state.hasLogin = localStorage.hasLogin
+      }
+      return state.hasLogin
+    },
+    getNavIndex (state) {
+      if (localStorage.navIndex) {
+        state.navIndex = localStorage.navIndex
+      }
+      return state.navIndex
     }
     // getCurrentUser (state) {
     //   if (localStorage.user) {

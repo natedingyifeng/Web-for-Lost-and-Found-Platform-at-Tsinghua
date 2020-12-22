@@ -104,8 +104,8 @@ const routes: Array<RouteConfig> = [
   // },
   {
     path: '/',
-    name: 'lost-list',
-    component: () => import('../views/lost_list.vue')
+    name: 'login',
+    component: () => import('../views/login.vue')
   },
   {
     path: '/lost-list',
@@ -126,6 +126,11 @@ const routes: Array<RouteConfig> = [
     path: '/certification-application-list',
     name: 'certification-application-list',
     component: () => import('../views/certification_application_list.vue')
+  },
+  {
+    path: '/report-list',
+    name: 'report-list',
+    component: () => import('../views/report_list.vue')
   },
   {
     path: '/property-types-list',
@@ -163,6 +168,11 @@ const routes: Array<RouteConfig> = [
     component: () => import('../views/certification_application.vue')
   },
   {
+    path: '/report/:reportId',
+    name: 'report',
+    component: () => import('../views/report.vue')
+  },
+  {
     path: '/analysis',
     name: 'anslysis',
     component: () => import('../views/analysis.vue')
@@ -171,7 +181,12 @@ const routes: Array<RouteConfig> = [
     path: '/create-accounts',
     name: 'create-accounts',
     component: () => import('../views/account.vue')
-  }
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('../views/login.vue')
+  },
 ]
 
 const router = new VueRouter({

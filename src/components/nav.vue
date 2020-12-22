@@ -19,25 +19,21 @@
       </div>
       <el-menu-item index="1"
                     style="margin-left:30px;"
-                    v-if="hasLogin === true">寻物启事列表</el-menu-item>
+                    v-if="hasLogin == true">寻物启事列表</el-menu-item>
       <el-menu-item index="2"
-                    v-if="hasLogin === true">失物招领列表</el-menu-item>
+                    v-if="hasLogin == true">失物招领列表</el-menu-item>
       <el-menu-item index="7"
-                    v-if="hasLogin === true">用户列表</el-menu-item>
+                    v-if="hasLogin == true">用户列表</el-menu-item>
       <el-menu-item index="6"
-                    v-if="hasLogin === true">认证申请</el-menu-item>
+                    v-if="hasLogin == true">认证申请</el-menu-item>
       <el-menu-item index="9"
-                    v-if="hasLogin === true">举报处理</el-menu-item>
-      <el-submenu index="8"
-                  v-if="hasLogin === true && isAdmin === true">
-        <template slot="title">添加物品</template>
-        <el-menu-item index="8-1">物品种类</el-menu-item>
-        <el-menu-item index="8-2">物品模板</el-menu-item>
-      </el-submenu>
+                    v-if="hasLogin == true">举报处理</el-menu-item>
+      <el-menu-item index="8"
+                  v-if="hasLogin == true">物品列表</el-menu-item>
       <el-menu-item index="10"
-                    v-if="hasLogin === true && isAdmin === true">创建账号</el-menu-item>
+                    v-if="hasLogin == true">创建账号</el-menu-item>
       <el-menu-item index="3"
-                    v-if="hasLogin === true && isAdmin === true">平台信息</el-menu-item>
+                    v-if="hasLogin == true">平台信息</el-menu-item>
       <el-submenu index="4"
                   style="float:right;margin-right:100px;"
                   v-if="hasLogin">
@@ -72,11 +68,10 @@ import Axios from 'axios'
 export default {
   data () {
     return {
-      hasLogin: true,
-      activeIndex: '1',
+      hasLogin: this.$store.getters.getUserLoginStatus,
+      activeIndex: '0',
       inputSearch: '',
-      select: '1',
-      isAdmin: true
+      select: '1'
     }
   },
   methods: {
@@ -104,16 +99,6 @@ export default {
           this.$router.push(path)
           break
         }
-        case '5-1': {
-          this.activeIndex = '5'
-          this.$router.push('/create-equipment')
-          break
-        }
-        case '5-4': {
-          this.activeIndex = '5'
-          this.$router.push('/create-renter-application')
-          break
-        }
         case '6': {
           this.activeIndex = '6'
           this.$router.push('/certification-application-list')
@@ -124,14 +109,14 @@ export default {
           this.$router.push('/user-list')
           break
         }
-        case '8-1': {
+        case '8': {
           this.activeIndex = '8'
           this.$router.push('/property-types-list')
           break
         }
-        case '8-2': {
-          this.activeIndex = '8'
-          this.$router.push('/property-templates-list')
+        case '9': {
+          this.activeIndex = '9'
+          this.$router.push('/report-list')
           break
         }
         case '10': {

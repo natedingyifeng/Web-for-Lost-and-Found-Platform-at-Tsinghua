@@ -73,10 +73,23 @@
             <img width="100%" :src="template.thumbnail_url" alt="">
           </el-dialog>
         </el-form-item>
-        <el-form-item label='模板fields'
+        <el-form-item label='模板属性'
                       class="label">
-          <el-input v-model="template.fields"
-                    type='textarea'></el-input>
+          <el-tag v-for="item in template_fields" 
+                  :disable-transitions="false"
+                  :key="item" 
+                  @close="handleClose(item)"
+                  :closable="true">{{item.name}}</el-tag>
+          <el-input
+            class="input-new-tag"
+            v-if="inputVisible"
+            v-model="inputValue"
+            ref="saveTagInput"
+            size="small"
+            @keyup.enter.native="handleInputConfirm"
+            @blur="handleInputConfirm"
+            style="width:15%;"></el-input>
+          <el-button v-else class="button-new-tag" size="small" @click="showInput">+ New Tag</el-button>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -199,6 +212,9 @@ export default {
         thumbnail_url: '',
         fields: ''
       },
+      template_fields: [],
+      inputVisible: false,
+      inputValue: '',
       data: { count: 0 }
     }
   },
@@ -233,6 +249,24 @@ export default {
     this.changePage(1)
   },
   methods: {
+    handleClose(item) {
+      this.template_fields.splice(this.template_fields.indexOf(item), 1);
+    },
+    showInput() {
+      this.inputVisible = true;
+      this.$nextTick(_ => {
+        this.$refs.saveTagInput.$refs.input.focus();
+      });
+    },
+    handleInputConfirm() {
+      let inputValue = this.inputValue;
+      if (inputValue) {
+        this.template_fields.push({name:inputValue})
+      }
+      this.inputVisible = false;
+      this.inputValue = '';
+      console.log(this.template_fields)
+    },
     sortChange: function(column, prop, order) {
       console.log(column + '-' + column.prop + '-' + column.order)
       let order_prop
@@ -343,6 +377,12 @@ export default {
       // const data = {
       //   name: this.type_name.name
       // }
+      var json = {}
+      for(var i=0;i<this.template_fields.length;i++)
+      {
+        json[this.template_fields[i].name]=""
+      }
+      this.template.fields = JSON.stringify(json)
       let data=new FormData();
       data.append('name', this.template.name)
       data.append('type', this.template.type)

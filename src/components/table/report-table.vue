@@ -1,48 +1,53 @@
 // writen by xyh
 <template>
   <div>
-    <el-card class="title-card">所有认证申请</el-card>
+    <el-card class="title-card">所有举报信息</el-card>
     <search-filter :options="options"
                    @search="searchAndFilter"></search-filter>
     <el-card class="table-card">
-      <el-table :data="verification_applications"
+      <el-table :data="reports"
                 stripe
                 id="users-table"
                 class="table"
                 @row-click="enter"
-                :height="height">
+                :height="height"
+                @sort-change='sortChange'>
         <el-table-column prop="id"
                          label="ID"
-                         width="100">
+                         width="100"
+                         sortable='custom'>
         </el-table-column>
         <el-table-column prop="created_at"
                          label="创建时间"
+                         width="200"
+                         sortable='custom'>
+        </el-table-column>
+        <el-table-column prop="submit_user.username"
+                         label="举报者"
                          width="200">
         </el-table-column>
-        <el-table-column prop="user"
-                         label="申请者"
-                         width="800">
-        </el-table-column>
-        <el-table-column prop="status"
-                         label="状态"
-                         width="150">
-        </el-table-column> 
-        <!-- <el-table-column prop="lost_item"
-                         label="拾取物品"
-                         width="230">
-        </el-table-column>
-        <el-table-column prop="lost_place"
-                         label="拾取地点"
-                         width="250">
-        </el-table-column>
-        <el-table-column prop="lost_time"
-                         label="拾取时间"
+        <!-- <el-table-column prop="user.username"
+                         label="被举报启事"
                          width="200">
-        </el-table-column>
-        <el-table-column prop="status"
-                         label="状态"
-                         width="130">
         </el-table-column> -->
+        <el-table-column prop="user.username"
+                         label="被举报者"
+                         width="500">
+        </el-table-column>
+        <el-table-column prop="type"
+                         label="举报类型"
+                         width="150"
+                         :filters="[{ text: '诈骗行为', value: '诈骗行为' }, { text: '恶意骚扰', value: '恶意骚扰' }, { text: '推销广告', value: '推销广告' }, { text: '低俗色情', value: '低俗色情' }, { text: '违法内容', value: '违法内容' }, { text: '垃圾内容', value: '垃圾内容' }, { text: '侵权行为', value: '侵权行为' }, { text: '其他', value: '其他' }]"
+                        :filter-method="filterType"
+                        filter-placement="bottom-end">
+        </el-table-column> 
+        <el-table-column prop="verdict_type"
+                         label="状态"
+                         width="150"
+                         :filters="[{ text: '有罪', value: '有罪' }, { text: '无罪', value: '无罪' }, { text: '未处理', value: '未处理' }]"
+                        :filter-method="filterStatus"
+                        filter-placement="bottom-end">
+        </el-table-column> 
       </el-table>
       <el-pagination background
                      layout="prev, pager, next"
@@ -89,7 +94,7 @@ export default {
   },
   data: function () {
     return {
-      verification_applications: [],
+      reports: [],
       options: [
         { value: 'search', label: '全部搜索' },
         { value: 'creator', label: '筛选：申请者' }
@@ -98,21 +103,32 @@ export default {
       input: '',
       data: { count: 0 },
       Status: {
-        ACC: "通过",
-        REJ: "拒绝",
-        TBD: "未处理"
+        GUI: "有罪",
+        INN: "无罪",
+        UNT: "未处理"
       },
+      Types: {
+        SCM: "诈骗行为",
+        HRS: "恶意骚扰",
+        ADV: "推销广告",
+        PRN: "低俗色情",
+        ILL: "违法信息",
+        SPM: "垃圾内容",
+        CPY: "侵权行为",
+        OTH: "其他"
+      },
+      reports_notice: []
     }
   },
   created: function () {
-    Axios.get('/user-verification-applications/', {})
+    Axios.get('/reports/', {})
     .then((response) => {
-      this.verification_applications = response.data.results
-      for(var i=0;i<this.verification_applications.length;i++)
+      this.reports = response.data.results
+      for(var i=0;i<this.reports.length;i++)
       {
-        this.getUserName(i)
-        this.verification_applications[i].created_at = this.extractTime(this.verification_applications[i].created_at)
-        this.verification_applications[i].status = this.Status[this.verification_applications[i].status]
+        this.reports[i].created_at = this.extractTime(this.reports[i].created_at)
+        this.reports[i].verdict_type = this.Status[this.reports[i].verdict_type]
+        this.reports[i].type = this.Types[this.reports[i].type]
       }
     })
     .catch((error) => {
@@ -121,17 +137,45 @@ export default {
     this.changePage(1)
   },
   methods: {
-    getUserName(id) {
-      Axios.get('/users/' + this.verification_applications[id].user + '/', {})
-      .then((response) => {
-        this.verification_applications[id].user = response.data.username
+    filterStatus(value, row) {
+      return row.verdict_type === value;
+    },
+    filterType(value, row) {
+      return row.type === value;
+    },
+    sortChange: function(column, prop, order) {
+      let order_prop
+      if(column.order == "descending")
+      {
+        order_prop = "-" + column.prop
+      }
+      else
+      {
+        order_prop=column.prop
+      }
+      Axios.get('/reports', {
+        params: {
+          ordering: order_prop,
+          offset: 0,
+          limit: this.pageSize
+        }
       })
-      .catch((error) => {
-        alert('error:' + error)
-      })
+        .then((response) => {
+          this.reports = response.data.results
+          for(var i=0;i<this.reports.length;i++)
+          {
+            this.reports[i].created_at = this.extractTime(this.reports[i].created_at)
+            this.reports[i].verdict_type = this.Status[this.reports[i].verdict_type]
+            this.reports[i].type = this.Types[this.reports[i].type]
+          }
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
     },
     enter: function (row) {
-      this.$router.push({ name: 'certification-application', params: { certificationApplicationId: row.id } })
+      this.$router.push({ name: 'report', params: { reportId: row.id } })
     },
     searchAndFilter: function (select, input) {
       this.select = select
