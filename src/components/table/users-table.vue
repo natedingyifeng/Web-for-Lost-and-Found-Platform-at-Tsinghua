@@ -10,7 +10,6 @@
                 stripe
                 id="users-table"
                 class="table"
-                :height="height"
                 @sort-change='sortChange'>
         <el-table-column prop="id"
                         label="ID"
@@ -27,10 +26,6 @@
                         width="100"
                         sortable='custom'>
         </el-table-column>
-        <!-- <el-table-column prop="created_at"
-                        label="创建时间"
-                        width="180">
-        </el-table-column> -->
         <el-table-column prop="username"
                         label="昵称"
                         width="160"
@@ -58,14 +53,10 @@
                         :filter-method="filterTag"
                         filter-placement="bottom-end">
         </el-table-column>
-        <!-- <el-table-column prop="is_renter"
-                        label="是否是租借者"
-                        width="180">
-        </el-table-column> -->
       </el-table>
       <el-pagination background
                     layout="prev, pager, next"
-                    :total="data.count*10/pageSize"
+                    :total="users_sum"
                     class="page-chooser"
                     @current-change="changePage">
       </el-pagination>
@@ -81,16 +72,16 @@
 }
 .table {
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 40px auto;
 }
 .table-card{
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 0 auto;
 }
 .page-chooser {
   position: relative;
-  left: 45%;
-  top: 10px;
+  left: 43%;
+  top: -10px;
 }
 </style>
 
@@ -109,10 +100,6 @@ export default {
     return {
       data: { count: 0 },
       userList: [],
-      // userList: [
-      //   {id: 1, created_at: "2020.11.1 12:58", last_name: "丁", first_name: "一峰", nickname: "natedingyifeng", email: "123@qq.com", phone: "12318012345", status: "未认证"},
-      //   {id: 2, created_at: "2020.11.2 21:23", last_name: "苏", first_name: "敬恒", nickname: "hengsoosoo", email: "456@qq.com", phone: "12132012345", status: "未认证"}
-      // ],
       select: 'search',
       input: '',
       options: [
@@ -137,7 +124,9 @@ export default {
         ACT: "活跃中",
         INA: "不活跃",
         SUS: "已禁用"
-      }
+      },
+      users_sum: 0,
+      pageSize: 10
     }
   },
   created: function () {
@@ -151,6 +140,7 @@ export default {
             this.userList.results[i].status = this.Status[this.userList.results[i].status]
           }
           // console.log(this.property_type_list.results)
+          this.users_sum = response.data.count
       })
       .catch((error) => {
         alert('error:' + error)
@@ -246,9 +236,7 @@ export default {
     changePage: function (page) {
       Axios.get('/users', {
         params: {
-          [this.select]: this.input,
-          offset: (page - 1) * this.pageSize,
-          limit: this.pageSize
+          page: page
         }
       })
         .then((response) => {
@@ -260,25 +248,9 @@ export default {
             this.userList.results[i].status = this.Status[this.userList.results[i].status]
           }
         }).catch((error) => {
-          // alert('error:' + error)
           console.log(error)
           this.$alert(error.response.data)
         })
-      // if (this.$store.getters.getUserKey === 'null') {
-      //   return
-      // }
-
-      // Axios.get('/api/v1/user', { params: { [this.select]: this.input, offset: (page - 1) * this.pageSize, limit: this.pageSize }, headers: { Authorization: 'Token ' + this.$store.getters.getUserKey } })
-      //   .then((response) => {
-      //     this.userList = response.data.results
-      //     this.data = response.data
-      //     console.log(this.userList)
-      //   })
-      //   .catch((error) => {
-      //     console.log(error.response)
-      //     this.$alert(error.response.data)
-      //     // alert('error:' + error)
-      //   })
     }
   }
 }

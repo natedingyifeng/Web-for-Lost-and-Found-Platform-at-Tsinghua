@@ -36,6 +36,8 @@
                     v-if="hasLogin == true">启事匹配</el-menu-item>
       <el-menu-item index="3"
                     v-if="hasLogin == true">平台信息</el-menu-item>
+      <el-menu-item index="12"
+                    v-if="hasLogin == true">使用帮助</el-menu-item>
       <el-submenu index="4"
                   style="float:right;margin-right:100px;"
                   v-if="hasLogin == true">
@@ -46,16 +48,11 @@
                   style="background-color:white;width: 40px;height: 40px;border-radius: 50%;float: left;margin-top: 10px;" />
           </div>
         </template>
+         <el-menu-item index="4-2"
+                      @click="checkMe">当前用户</el-menu-item>
         <el-menu-item index="4-3"
                       @click="logout">退出登录</el-menu-item>
       </el-submenu>
-      <!-- <el-submenu index="5"
-                  style="float:right;"
-                  v-if="hasLogin">
-        <template slot="title">发布申请</template>
-        <el-menu-item index="5-1">申请添加设备</el-menu-item>
-        <el-menu-item index="5-4">申请成为出租者</el-menu-item>
-      </el-submenu> -->
       <el-menu-item style="margin-right:100px;float:right;font-size:19px;"
                     v-if="!hasLogin"><a href="/login">未登录</a></el-menu-item>
     </el-menu>
@@ -142,37 +139,22 @@ export default {
           this.$router.push('/matching-entries')
           break
         }
+         case '12': {
+          this.activeIndex = '12'
+          this.$router.push('/help')
+          break
+        }
       }
     },
     goRouter (path) {
       this.$router.go(path)
     },
+    checkMe() {
+      this.$router.push({ name: 'user', params: { userId: this.$store.getters.getUserId } })
+    },
     logout () {
       this.$store.commit('resetState')
       location.reload()
-      // console.log('logout')
-      // console.log(this.$store.getters.getUserKey)
-      // Axios({
-      //   url: '/api/v1/rest-auth/logout/',
-      //   method: 'post',
-      //   headers: {
-      //     Authorization: 'Token ' + this.$store.getters.getUserKey
-      //   }
-      // })
-      //   .then(() => {
-      //     this.$store.commit('resetState')
-      //     this.$router.push('/login')
-      //     location.reload()
-      //     // console.log(this.$store.getters.getUserKey)
-      //   })
-      //   .catch((error) => {
-      //     // this.$alert(error.response.statusText, '登出失败！')
-      //     this.$store.commit('resetState')
-      //     // location.reload()
-      //     this.$router.push('/login')
-      //     console.log(error.request)
-      //     this.$alert(error.response.data)
-      //   })
     },
     search () {
       console.log('search')

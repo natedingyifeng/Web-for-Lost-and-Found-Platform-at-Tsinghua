@@ -242,15 +242,6 @@ export default {
       found_notice_timeline: [],
       timeStamp: 2 * 24 * 60 * 60 * 1000,
       label_interval: 5
-      // pickDateOption: {
-      //   disabledDate: time => { // time为形参，实参就是自动获取到的beginTime元素可以选的值
-      //     if (time && this.date_search[1]) {
-      //       // 注意：这里要把time.endTime以及你要计算的时间用.getTime()转为时间戳
-      //       // 大于结束时间不可选，小于结束时间减去两天（也就是昨天）不可选。结果是只能选昨天和今天
-      //       return time.getTime() > new Date(this.date_search[1]).getTime() || time.getTime() < new Date(this.date_search[1]).getTime() - timeStamp
-      //     }
-      //   }
-      // },
     }
   },
   mounted() {

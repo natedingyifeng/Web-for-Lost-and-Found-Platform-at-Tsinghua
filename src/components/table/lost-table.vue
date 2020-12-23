@@ -1,4 +1,3 @@
-// writen by xyh
 <template>
   <div>
     <el-card class="title-card">
@@ -273,7 +272,6 @@
                 id="users-table"
                 class="table"
                 @row-click="enter"
-                :height="height"
                 @sort-change='sortChange'>
         <el-table-column prop="id"
                          label="ID"
@@ -320,7 +318,7 @@
       </el-table>
       <el-pagination background
                      layout="prev, pager, next"
-                     :total="data.count*10/pageSize"
+                     :total="1"
                      class="page-chooser"
                      @current-change="changePage">
       </el-pagination>
@@ -336,16 +334,16 @@
 }
 .table {
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 40px auto;
 }
 .table-card{
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 0 auto;
 }
 .page-chooser {
   position: relative;
-  left: 45%;
-  top: 10px;
+  left: 43%;
+  top: -10px;
 }
 .edit{
   position: relative;

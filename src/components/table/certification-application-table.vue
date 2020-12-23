@@ -1,4 +1,3 @@
-// writen by xyh
 <template>
   <div>
     <el-card class="title-card">所有认证申请</el-card>
@@ -9,8 +8,7 @@
                 stripe
                 id="users-table"
                 class="table"
-                @row-click="enter"
-                :height="height">
+                @row-click="enter">
         <el-table-column prop="id"
                          label="ID"
                          width="100">
@@ -27,26 +25,10 @@
                          label="状态"
                          width="150">
         </el-table-column> 
-        <!-- <el-table-column prop="lost_item"
-                         label="拾取物品"
-                         width="230">
-        </el-table-column>
-        <el-table-column prop="lost_place"
-                         label="拾取地点"
-                         width="250">
-        </el-table-column>
-        <el-table-column prop="lost_time"
-                         label="拾取时间"
-                         width="200">
-        </el-table-column>
-        <el-table-column prop="status"
-                         label="状态"
-                         width="130">
-        </el-table-column> -->
       </el-table>
       <el-pagination background
                      layout="prev, pager, next"
-                     :total="data.count*10/pageSize"
+                     :total="certifications_sum"
                      class="page-chooser"
                      @current-change="changePage">
       </el-pagination>
@@ -62,16 +44,16 @@
 }
 .table {
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 40px auto;
 }
 .table-card{
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 0 auto;
 }
 .page-chooser {
   position: relative;
-  left: 45%;
-  top: 10px;
+  left: 43%;
+  top: -10px;
 }
 </style>
 
@@ -103,6 +85,8 @@ export default {
         REJ: "拒绝",
         TBD: "未处理"
       },
+      certifications_sum: 0,
+      pageSize: 10
     }
   },
   created: function () {
@@ -115,6 +99,8 @@ export default {
         this.verification_applications[i].created_at = this.extractTime(this.verification_applications[i].created_at)
         this.verification_applications[i].status = this.Status[this.verification_applications[i].status]
       }
+      this.certifications_sum = response.data.count
+      console.log(this.certifications_sum/this.pageSize)
     })
     .catch((error) => {
       alert('error:' + error)
@@ -142,9 +128,7 @@ export default {
     changePage: function (page) {
       Axios.get('/user-verification-applications', {
         params: {
-          [this.select]: this.input,
-          offset: (page - 1) * this.pageSize,
-          limit: this.pageSize
+          page: page
         }
       })
         .then((response) => {
@@ -156,50 +140,9 @@ export default {
             this.verification_applications[i].status = this.Status[this.verification_applications[i].status]
           }
         }).catch((error) => {
-          // alert('error:' + error)
           console.log(error)
           this.$alert(error.response.data)
         })
-      // if (this.$store.getters.getUserKey === 'null') {
-      //   return
-      // }
-
-      // if (this.id === -1) {
-      //   Axios.get('/api/v1/rent-application', {
-      //     params: {
-      //       [this.select]: this.input,
-      //       offset: (page - 1) * this.pageSize,
-      //       limit: this.pageSize
-      //     },
-      //     headers: {
-      //       Authorization: 'Token ' + this.$store.getters.getUserKey
-      //     }
-      //   })
-      //     .then((response) => {
-      //       this.rentApplicationList = response.data.results
-      //       this.data = response.data
-      //     }).catch((error) => {
-      //       this.$alert(error.response.data)
-      //     })
-      // } else {
-      //   Axios.get('/api/v1/rent-application/', {
-      //     params: {
-      //       [this.select]: this.input,
-      //       offset: (page - 1) * this.pageSize,
-      //       limit: this.pageSize,
-      //       id: this.id
-      //     }
-      //   })
-      //     .then((response) => {
-      //       this.rentApplicationList = response.data.results
-      //       this.data = response.data
-      //     }).catch((error) => {
-      //       console.log(error.response)
-      //       // alert('error:' + error)
-      //       this.$alert(error.response.data)
-      //       console.log(error)
-      //     })
-      // }
     },
     extractTime(time){
       let date=time.split("T");

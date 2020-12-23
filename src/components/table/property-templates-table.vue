@@ -167,27 +167,6 @@ export default {
     }
   },
   created: function () {
-    // lostList=[{id: 1, created_at: "2020.11.2 23:58", created_by: "丁一峰", lost_item: "Airpods", lost_place: "第六教学楼", lost_time: "11月2日上午十点左右", status: "未归还"}]
-    // 获取用户列表
-    // if (this.id === -1) {
-    //   Axios.get('api/v1/rent-application', {})
-    //     .then((response) => {
-    //       this.rentApplicationList = response.data.results
-    //     })
-    //     .catch((error) => {
-    //       alert('error:' + error)
-    //     })
-    // } else {
-    //   Axios.get('api/v1/rent-application/userId/' + this.id, {})
-    //     .then((response) => {
-    //       this.rentApplicationList = response.data.results
-    //     })
-    //     .catch((error) => {
-    //       alert('error:' + error)
-    //     })
-    // }
-    //Axios.defaults.headers.common["Authorization"]="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjA2NjYyNjM3LCJqdGkiOiI1MjZlZDIyYjhlYTI0MzZmOTQzNDIxNzZjM2E1ZGFiZCIsInVzZXJfaWQiOjJ9.nHlpi0V4GbErqIhEsJAU42ITsUzN7SBXAvombMXrB8M"
-    // Axios.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
     Axios.get('/property-templates', {
       // headers: {
       //   Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjA2NjYyNjM3LCJqdGkiOiI1MjZlZDIyYjhlYTI0MzZmOTQzNDIxNzZjM2E1ZGFiZCIsInVzZXJfaWQiOjJ9.nHlpi0V4GbErqIhEsJAU42ITsUzN7SBXAvombMXrB8M'
@@ -203,8 +182,6 @@ export default {
     Axios.get('/property-types', {})
       .then((response) => {
           this.property_type_list = response.data
-          //console.log(this.property_template_list.results[id-1])
-          //console.log(this.property_template_list.results[this.id-1].thumbnail)
       })
       .catch((error) => {
         alert('error:' + error)
@@ -216,7 +193,6 @@ export default {
       console.log(index, row)
     },
     handleDelete(index, row) {
-      // console.log(row.id)
       Axios.delete('/property-templates/' + row.id + '/', {})
       .then((response) => {
           this.reload()
@@ -239,15 +215,11 @@ export default {
       location.reload()
     },
     CreateNewTemplate: function() {
-      // const data = {
-      //   name: this.type_name.name
-      // }
       let data=new FormData();
       data.append('name', this.template.name)
       data.append('type', this.template.type)
       data.append('thumbnail', this.template.thumbnail.raw)
       data.append('fields', this.template.fields)
-      //Axios.defaults.headers.common["Authorization"]="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjA2NTc2NDU4LCJqdGkiOiI3Njc4NjUzOWY0NDU0Y2NiYjUxOTEzZWFlZjUxMjFiYyIsInVzZXJfaWQiOjF9.HCgdFjYiXHIJFQDbbnvLZCe2JzA2es-AiTKuHWWyBVU"
       Axios({
         url: '/property-templates/',
         method: 'post',
@@ -275,46 +247,6 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
-      // if (this.$store.getters.getUserKey === 'null') {
-      //   return
-      // }
-
-      // if (this.id === -1) {
-      //   Axios.get('/api/v1/rent-application', {
-      //     params: {
-      //       [this.select]: this.input,
-      //       offset: (page - 1) * this.pageSize,
-      //       limit: this.pageSize
-      //     },
-      //     headers: {
-      //       Authorization: 'Token ' + this.$store.getters.getUserKey
-      //     }
-      //   })
-      //     .then((response) => {
-      //       this.rentApplicationList = response.data.results
-      //       this.data = response.data
-      //     }).catch((error) => {
-      //       this.$alert(error.response.data)
-      //     })
-      // } else {
-      //   Axios.get('/api/v1/rent-application/', {
-      //     params: {
-      //       [this.select]: this.input,
-      //       offset: (page - 1) * this.pageSize,
-      //       limit: this.pageSize,
-      //       id: this.id
-      //     }
-      //   })
-      //     .then((response) => {
-      //       this.rentApplicationList = response.data.results
-      //       this.data = response.data
-      //     }).catch((error) => {
-      //       console.log(error.response)
-      //       // alert('error:' + error)
-      //       this.$alert(error.response.data)
-      //       console.log(error)
-      //     })
-      // }
     }
   }
 }

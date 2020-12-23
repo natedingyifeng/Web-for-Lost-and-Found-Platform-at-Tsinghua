@@ -1,4 +1,3 @@
-// writen by xyh
 <template>
   <div>
     <el-card class="title-card">
@@ -160,7 +159,6 @@
                 id="users-table"
                 class="table"
                 @row-click="enter"
-                :height="height"
                 row-key="name"
                 :tree-props="{children: 'templates'}"
                 @sort-change='sortChange'>
@@ -188,11 +186,13 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination background
-                     layout="prev, pager, next"
-                     :total="data.count*10/pageSize"
-                     class="page-chooser"
-                     @current-change="changePage">
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :total="types_sum"
+        class="page-chooser"
+        @current-change="changePage"
+        v-if="pagination_update">
       </el-pagination>
     </el-card>
   </div>
@@ -206,16 +206,16 @@
 }
 .table {
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 40px auto;
 }
 .table-card{
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 0 auto;
 }
 .page-chooser {
   position: relative;
-  left: 45%;
-  top: 10px;
+  left: 43%;
+  top: -10px;
 }
 .edit{
   position: relative;
@@ -282,37 +282,27 @@ export default {
         name: "",
         details: ""
       },
+      types_sum: 0,
+      pages_sum: 0,
+      pageSize: 10,
+      pagination_update: true
     }
   },
   created: function () {
-    // lostList=[{id: 1, created_at: "2020.11.2 23:58", created_by: "丁一峰", lost_item: "Airpods", lost_place: "第六教学楼", lost_time: "11月2日上午十点左右", status: "未归还"}]
-    // 获取用户列表
-    // if (this.id === -1) {
-    //   Axios.get('api/v1/rent-application', {})
-    //     .then((response) => {
-    //       this.rentApplicationList = response.data.results
-    //     })
-    //     .catch((error) => {
-    //       alert('error:' + error)
-    //     })
-    // } else {
-    //   Axios.get('api/v1/rent-application/userId/' + this.id, {})
-    //     .then((response) => {
-    //       this.rentApplicationList = response.data.results
-    //     })
-    //     .catch((error) => {
-    //       alert('error:' + error)
-    //     })
-    // }
     Axios.get('/property-types', {})
       .then((response) => {
           this.property_type_list = response.data
           console.log(this.property_type_list.results)
+          this.types_sum = response.data.count
+          this.pagination_update = false
+          this.$nextTick(() => {
+            this.pagination_update = true
+          })
       })
       .catch((error) => {
         alert('error:' + error)
       })
-    this.changePage(1)
+    // this.changePage(1)
   },
   methods: {
     createField() {
@@ -381,7 +371,6 @@ export default {
           console.log(this.input)
           console.log(this.property_type_list.results)
         }).catch((error) => {
-          // alert('error:' + error)
           console.log(error)
           this.$alert(error.response.data)
         })
@@ -546,7 +535,6 @@ export default {
       {
         this.$router.push({ name: 'property-templates', params: { templateId: row.id } })
       }
-      // this.$router.push({ name: 'certification-application', params: { certificationApplicationId: row.id } })
     },
     searchAndFilter: function (select, input) {
       this.select = select
@@ -556,9 +544,7 @@ export default {
     changePage: function (page) {
       Axios.get('/property-types', {
         params: {
-          [this.select]: this.input,
-          offset: (page - 1) * this.pageSize,
-          limit: this.pageSize
+          page: page
         }
       })
         .then((response) => {
@@ -571,46 +557,6 @@ export default {
           console.log(error)
           this.$alert(error.response.data)
         })
-      // if (this.$store.getters.getUserKey === 'null') {
-      //   return
-      // }
-
-      // if (this.id === -1) {
-      //   Axios.get('/api/v1/rent-application', {
-      //     params: {
-      //       [this.select]: this.input,
-      //       offset: (page - 1) * this.pageSize,
-      //       limit: this.pageSize
-      //     },
-      //     headers: {
-      //       Authorization: 'Token ' + this.$store.getters.getUserKey
-      //     }
-      //   })
-      //     .then((response) => {
-      //       this.rentApplicationList = response.data.results
-      //       this.data = response.data
-      //     }).catch((error) => {
-      //       this.$alert(error.response.data)
-      //     })
-      // } else {
-      //   Axios.get('/api/v1/rent-application/', {
-      //     params: {
-      //       [this.select]: this.input,
-      //       offset: (page - 1) * this.pageSize,
-      //       limit: this.pageSize,
-      //       id: this.id
-      //     }
-      //   })
-      //     .then((response) => {
-      //       this.rentApplicationList = response.data.results
-      //       this.data = response.data
-      //     }).catch((error) => {
-      //       console.log(error.response)
-      //       // alert('error:' + error)
-      //       this.$alert(error.response.data)
-      //       console.log(error)
-      //     })
-      // }
     }
   }
 }

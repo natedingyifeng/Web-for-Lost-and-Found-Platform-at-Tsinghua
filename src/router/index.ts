@@ -202,6 +202,11 @@ const routes: Array<RouteConfig> = [
     name: 'matching-entries',
     component: () => import('../views/matching_entries_list.vue')
   },
+  {
+    path: '/help',
+    name: 'help',
+    component: () => import('../views/help.vue')
+  },
 ]
 
 const router = new VueRouter({

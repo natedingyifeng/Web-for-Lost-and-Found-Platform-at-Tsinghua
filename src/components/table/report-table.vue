@@ -10,7 +10,6 @@
                 id="users-table"
                 class="table"
                 @row-click="enter"
-                :height="height"
                 @sort-change='sortChange'>
         <el-table-column prop="id"
                          label="ID"
@@ -26,10 +25,6 @@
                          label="举报者"
                          width="200">
         </el-table-column>
-        <!-- <el-table-column prop="user.username"
-                         label="被举报启事"
-                         width="200">
-        </el-table-column> -->
         <el-table-column prop="user.username"
                          label="被举报者"
                          width="500">
@@ -51,7 +46,7 @@
       </el-table>
       <el-pagination background
                      layout="prev, pager, next"
-                     :total="data.count*10/pageSize"
+                     :total="reports_sum"
                      class="page-chooser"
                      @current-change="changePage">
       </el-pagination>
@@ -67,16 +62,16 @@
 }
 .table {
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 40px auto;
 }
 .table-card{
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 0 auto;
 }
 .page-chooser {
   position: relative;
-  left: 45%;
-  top: 10px;
+  left: 43%;
+  top: -10px;
 }
 </style>
 
@@ -120,7 +115,9 @@ export default {
         CPY: "侵权行为",
         OTH: "其他"
       },
-      reports_notice: []
+      reports_notice: [],
+      reports_sum: 0,
+      pageSize: 10
     }
   },
   created: function () {
@@ -133,6 +130,7 @@ export default {
         this.reports[i].verdict_type = this.Status[this.reports[i].verdict_type]
         this.reports[i].type = this.Types[this.reports[i].type]
       }
+      this.reports_sum = response.data.count
     })
     .catch((error) => {
       alert('error:' + error)
@@ -188,9 +186,7 @@ export default {
     changePage: function (page) {
       Axios.get('/reports', {
         params: {
-          [this.select]: this.input,
-          offset: (page - 1) * this.pageSize,
-          limit: this.pageSize
+          page: page
         }
       })
         .then((response) => {
