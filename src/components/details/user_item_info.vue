@@ -321,7 +321,11 @@ export default {
     }
   },
   created: function () {
-    axios.get('/users/'+this.id, {})
+    axios.get('/users/'+this.id+'/', {
+      headers: {
+        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      }
+    })
       .then((response) => {
           this.user_data = response.data
           this.user_origin = response.data
@@ -424,7 +428,11 @@ export default {
     imageUserDeleteUpdate(){
       this.user_data.wechat_avatar = null
       this.user_origin.wechat_avatar = null
-      axios.put('/users/'+this.id+'/', this.user_origin, {})
+      axios.put('/users/'+this.id+'/', this.user_origin, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
           this.upload_show = false
         })
@@ -439,7 +447,11 @@ export default {
     imageNoticeAddUpdate(){
       this.user_data.wechat_avatar = this.user_images_urls[0].url
       this.user_origin.images = this.user_images_urls[0].url
-      axios.put('/users/'+this.id+'/', this.user_origin, {})
+      axios.put('/users/'+this.id+'/', this.user_origin, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
           this.upload_show = true
         })
@@ -475,7 +487,10 @@ export default {
       axios({
         url: '/users/upload-avatar/',
         method: 'post',
-        data: data
+        data: data,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           this.upload_show = true
@@ -490,7 +505,11 @@ export default {
       this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
     },
     DeleteUser() {
-      axios.delete('/users/' + this.id + '/', {})
+      axios.delete('/users/' + this.id + '/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         this.$router.push('/user-list')
       })
@@ -535,7 +554,11 @@ export default {
     blockUser(){
       this.user_data.status="SUS"
       this.user_data.suspended_reason = this.block_content
-      axios.put('/users/'+this.id+'/', this.user_data, {})
+      axios.put('/users/'+this.id+'/', this.user_data, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
           location.reload()
         })
@@ -637,7 +660,11 @@ export default {
       //     this.$alert(error.response.data)
       //   })
       // this.$set(this.found_notice, "found_datetime", this.found_notice_found_datetime)
-      axios.put('/users/'+this.id+'/', this.user_data, {})
+      axios.put('/users/'+this.id+'/', this.user_data, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
           location.reload()
         })

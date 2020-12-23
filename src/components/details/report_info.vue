@@ -170,20 +170,11 @@
 import axios from 'axios'
 import lostTable from '../table/lost-table'
 import foundTable from '../table/found-table'
-// import renterApplicationTable from '../table/renter-application-table'
-// import releaseApplicationTable from '../table/release-application-table'
-// import receivedRentApplicationTable from '../table/received-rent-application-table'
-// import rentedEquipmentTable from '../table/rented-equipment-table'
 import changeButton from '../button/change-button'
 import delButton from '../button/del-button'
 import chat from '../chat'
 export default {
   components: {
-    // 'equipment-table': equipmentTable,
-    // 'rent-application-table': rentApplicationTable,
-    // 'renter-application-table': renterApplicationTable,
-    // 'release-application-table': releaseApplicationTable,
-    // 'received-rent-application-table': receivedRentApplicationTable,
     'lost-table': lostTable,
     'found-table': foundTable,
     'change-button': changeButton,
@@ -195,8 +186,6 @@ export default {
   },
   data: function () {
     return {
-      // isOwner: (this.id === this.$store.getters.getCurrentUser.id),
-      // isAdmin: this.$store.getters.isAdmin,
       isAdmin: true,
       isOwner: true,
       dialogVisible: false,
@@ -244,7 +233,11 @@ export default {
     }
   },
   created: function () {
-    axios.get('/reports/'+ this.id +'/', {})
+    axios.get('/reports/'+ this.id +'/', {
+      headers: {
+        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      }
+    })
     .then((response) => {
       this.report = response.data
     })
@@ -266,7 +259,11 @@ export default {
     },
     AcceptReportAndBlock() {
       this.report.verdict_type = "GUI"
-      axios.put('/reports/' + this.id + '/', this.report, {})
+      axios.put('/reports/' + this.id + '/', this.report, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         this.block_dialogFormVisible=false
         this.blockUser()
@@ -276,9 +273,14 @@ export default {
       })
     },
     blockUser(){
-      axios.get('/users/'+this.report.user.id+'/', {})
+      axios.get('/users/'+this.report.user.id+'/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
           this.user_data = response.data
+          console.log(this.user_data)
           this.blockUserWithComment()
         })
         .catch((error) => {
@@ -288,7 +290,11 @@ export default {
     blockUserWithComment(){
       this.user_data.status="SUS"
       this.user_data.suspended_reason = this.block_content
-      axios.put('/users/'+this.report.user.id+'/', this.user_data, {})
+      axios.put('/users/'+this.report.user.id+'/', this.user_data, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
           location.reload()
         })
@@ -298,7 +304,11 @@ export default {
     },
     RejectReport() {
       this.report.verdict_type = "INN"
-      axios.put('/reports/' + this.id + '/', this.report, {})
+      axios.put('/reports/' + this.id + '/', this.report, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         location.reload()
       })
@@ -307,7 +317,11 @@ export default {
       })
     },
     DeleteReport() {
-      axios.delete('/reports/' + this.id + '/', {})
+      axios.delete('/reports/' + this.id + '/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         this.$router.push('/report-list')
       })

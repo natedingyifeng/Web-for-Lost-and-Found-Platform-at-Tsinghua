@@ -130,7 +130,13 @@ export default {
     }
   },
   created: function () {
-    Axios.get('/users', {})
+    Axios({
+        url: '/users/',
+        method: 'get',
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
           this.userList = response.data
           for(var i=0;i<this.userList.results.length;i++)
@@ -145,7 +151,7 @@ export default {
       .catch((error) => {
         alert('error:' + error)
       })
-    this.changePage(1)
+    // this.changePage(1)
   },
   methods: {
     filterTag(value, row) {

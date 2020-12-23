@@ -484,7 +484,10 @@ export default {
       Axios({
         url: '/property-types/',
         method: 'post',
-        data: data
+        data: data,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           this.type_dialogFormVisible = false
@@ -515,10 +518,10 @@ export default {
       Axios({
         url: '/property-templates/',
         method: 'post',
-        data: data
-        // headers: {
-        //   Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjA2NTc2NDU4LCJqdGkiOiI3Njc4NjUzOWY0NDU0Y2NiYjUxOTEzZWFlZjUxMjFiYyIsInVzZXJfaWQiOjF9.HCgdFjYiXHIJFQDbbnvLZCe2JzA2es-AiTKuHWWyBVU'
-        // }
+        data: data,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           this.template_dialogFormVisible = false

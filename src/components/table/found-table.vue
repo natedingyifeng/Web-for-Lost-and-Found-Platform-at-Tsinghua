@@ -303,7 +303,7 @@
       </el-table>
       <el-pagination background
                      layout="prev, pager, next"
-                     :total="1"
+                     :total="found_notice_sum"
                      class="page-chooser"
                      @current-change="changePage">
       </el-pagination>
@@ -488,13 +488,21 @@ export default {
         latitude: 0,
         longitude: 0
       },
-      has_location: false
+      has_location: false,
+      page_begin: 0,
+      page_end: 9,
+      page_size: 10,
+      found_notice_sum: 0
     }
   },
   created: function () {
-    Axios.get('/found-notices/', {
+    Axios.get('/found-notices/index/', {
       params: {
-        limit: this.pageSize
+        start: this.page_begin,
+        end: this.page_end
+      },
+      headers: {
+        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
       }
     })
       .then((response) => {
@@ -509,6 +517,7 @@ export default {
             this.foundList.results[i].updated_at=this.extractTime(updated_at)
             this.foundList.results[i].status = this.Status[this.foundList.results[i].status]
           }
+          this.found_notice_sum = response.data.total
       })
       .catch((error) => {
         alert('error:' + error)
@@ -722,7 +731,10 @@ export default {
       Axios({
         url: '/found-notices/',
         method: 'post',
-        data: this.create_found_notice
+        data: this.create_found_notice,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           location.reload()
@@ -769,7 +781,10 @@ export default {
       Axios({
         url: '/found-notices/delete-image/',
         method: 'post',
-        data: data
+        data: data,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           that.found_notice_images.splice(index, 1);
@@ -800,7 +815,10 @@ export default {
       Axios({
         url: '/found-notices/upload-image/',
         method: 'post',
-        data: data
+        data: data,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           this.create_found_notice_image_url.push({url:response.data.url[0]})
@@ -829,7 +847,7 @@ export default {
       Axios.get('/found-notices', {
         params: {
           ordering: order_prop,
-          offset: 0,
+          offset: 9,
           limit: this.pageSize
         }
       })
@@ -903,11 +921,15 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
-      Axios.get('/found-notices', {
+      this.page_begin = 0 + (page-1)*this.page_size
+      this.page_end = 9 + (page-1)*this.page_size
+      Axios.get('/found-notices/index/', {
         params: {
-          [this.select]: this.input,
-          offset: (page - 1) * this.pageSize,
-          limit: this.pageSize
+          start: this.page_begin,
+          end: this.page_end
+        },
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
         }
       })
         .then((response) => {

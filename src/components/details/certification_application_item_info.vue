@@ -183,7 +183,11 @@ export default {
     }
   },
   created: function () {
-    axios.get('/user-verification-applications/'+ this.id +'/', {})
+    axios.get('/user-verification-applications/'+ this.id +'/', {
+      headers: {
+        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      }
+    })
     .then((response) => {
       this.verification_application = response.data
       this.getUserName(this.verification_application.user)
@@ -195,7 +199,11 @@ export default {
   methods: {
     AcceptApplication() {
       this.verification_application.status = "ACC"
-      axios.put('/user-verification-applications/' + this.id + '/', this.verification_application, {})
+      axios.put('/user-verification-applications/' + this.id + '/', this.verification_application, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         location.reload()
       })
@@ -205,7 +213,11 @@ export default {
     },
     RejectApplication() {
       this.verification_application.status = "REJ"
-      axios.put('/user-verification-applications/' + this.id + '/', this.verification_application, {})
+      axios.put('/user-verification-applications/' + this.id + '/', this.verification_application, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         location.reload()
       })
@@ -214,7 +226,11 @@ export default {
       })
     },
     DeleteApplication() {
-      axios.delete('/user-verification-applications/' + this.id + '/', {})
+      axios.delete('/user-verification-applications/' + this.id + '/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         this.$router.push('/certification-application-list')
       })
@@ -223,7 +239,11 @@ export default {
       })
     },
     getUserName(id) {
-      axios.get('/users/' + id + '/', {})
+      axios.get('/users/' + id + '/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         this.applicant = response.data.username
       })

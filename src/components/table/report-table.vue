@@ -121,7 +121,11 @@ export default {
     }
   },
   created: function () {
-    Axios.get('/reports/', {})
+    Axios.get('/reports/', {
+      headers: {
+        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      }
+    })
     .then((response) => {
       this.reports = response.data.results
       for(var i=0;i<this.reports.length;i++)
@@ -187,6 +191,9 @@ export default {
       Axios.get('/reports', {
         params: {
           page: page
+        },
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
         }
       })
         .then((response) => {
@@ -200,7 +207,6 @@ export default {
         }).catch((error) => {
           // alert('error:' + error)
           console.log(error)
-          this.$alert(error.response.data)
         })
     },
     extractTime(time){

@@ -86,7 +86,10 @@ export default {
       Axios({
         url: '/user-invitations/register/'+this.token+'/',
         method: 'post',
-        data: this.user_data_invitation
+        data: this.user_data_invitation,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
       .then((response) => {
         this.$router.push('/login')

@@ -154,6 +154,7 @@ export default {
     },
     logout () {
       this.$store.commit('resetState')
+      this.$router.push('/login')
       location.reload()
     },
     search () {

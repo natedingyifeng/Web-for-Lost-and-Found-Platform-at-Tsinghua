@@ -271,7 +271,11 @@ export default {
     }
   },
   created: function () {
-    axios.get('/property-templates/' + this.id + '/', {})
+    axios.get('/property-templates/' + this.id + '/', {
+      headers: {
+        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      }
+    })
       .then((response) => {
           this.property_template_list = response.data
           this.imgUrlToFile(this.property_template_list.thumbnail)
@@ -350,7 +354,11 @@ export default {
       return false
     },
     DeleteTemplate(){
-      axios.delete('/property-templates/' + this.id + '/', {})
+      axios.delete('/property-templates/' + this.id + '/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         this.$router.push('/property-types-list')
       })
@@ -461,7 +469,11 @@ export default {
       if(this.template_image_change == false)
       {
         this.property_template_list.thumbnail = this.ruleForm.coverFile.raw
-        axios.put('/property-templates/'+this.id+'/', this.property_template_list, {})
+        axios.put('/property-templates/'+this.id+'/', this.property_template_list, {
+          headers: {
+            Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+          }
+        })
         .then((response) => {
           location.reload()
         })
@@ -476,7 +488,11 @@ export default {
         data.append('type', this.property_template_list.type)
         data.append('thumbnail', this.property_template_list.thumbnail.raw)
         data.append('fields', JSON.stringify(this.property_template_list.fields))
-        axios.put('/property-templates/'+this.id+'/', data, {})
+        axios.put('/property-templates/'+this.id+'/', data, {
+          headers: {
+            Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+          }
+        })
         .then((response) => {
           location.reload()
         })

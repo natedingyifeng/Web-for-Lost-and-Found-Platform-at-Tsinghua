@@ -195,7 +195,11 @@ export default {
     }
   },
   created: function () {
-    Axios.get('/matching-entries/', {})
+    Axios.get('/matching-entries/', {
+      headers: {
+        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      }
+    })
     .then((response) => {
       this.matching_entries = response.data.results
       for(let i=0;i<this.matching_entries.length;i++)
@@ -213,7 +217,11 @@ export default {
     .catch((error) => {
       alert('error:' + error)
     })
-    Axios.get('/matching-hyperparameters/get-hyper/', {})
+    Axios.get('/matching-hyperparameters/get-hyper/', {
+      headers: {
+        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      }
+    })
     .then((response) => {
       this.edit_parameter = response.data
     })
@@ -223,7 +231,11 @@ export default {
   },
   methods: {
     editMatchingParameters() {
-      Axios.post('/matching-hyperparameters/update-hyper/', this.edit_parameter, {})
+      Axios.post('/matching-hyperparameters/update-hyper/', this.edit_parameter, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
           this.$message({
           type: 'success',
@@ -239,7 +251,11 @@ export default {
       return row.type === value;
     },
     handleMessage(value, row) {
-      Axios.post('/matching-entries/'+row.id+'/matching-notify/', {})
+      Axios.post('/matching-entries/'+row.id+'/matching-notify/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
           this.$message({
           type: 'success',
@@ -266,6 +282,9 @@ export default {
           ordering: order_prop,
           offset: 0,
           limit: this.pageSize
+        },
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
         }
       })
         .then((response) => {
@@ -301,6 +320,9 @@ export default {
           [this.select]: this.input,
           offset: (page - 1) * this.pageSize,
           limit: this.pageSize
+        },
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
         }
       })
         .then((response) => {

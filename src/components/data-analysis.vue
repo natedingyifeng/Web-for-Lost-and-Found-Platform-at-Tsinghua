@@ -353,7 +353,11 @@ export default {
     },
     getUserData(){
       let me=this;
-      Axios.get('/users/statistic', {})
+      Axios.get('/users/statistic/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         me.user_data = response.data
         this.drawUserStatusPie();
@@ -365,7 +369,11 @@ export default {
     },
     getFoundNoticeData(){
       let me=this;
-      Axios.get('/found-notices/stat-status', {})
+      Axios.get('/found-notices/stat-status/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         me.found_notice_data = response.data
         let has_pub = false
@@ -399,7 +407,11 @@ export default {
     },
     getLostNoticeData(){
       let me=this;
-      Axios.get('/lost-notices/stat-status', {})
+      Axios.get('/lost-notices/stat-status/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         me.lost_notice_data = response.data
         let has_pub = false
@@ -456,6 +468,9 @@ export default {
             start_time: this.date_search[0],
             end_time: this.date_search[1],
             type: type
+          },
+          headers: {
+            Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
           }
         })
         .then((response) => {
@@ -503,6 +518,9 @@ export default {
             start_time: this.date_search[0],
             end_time: this.date_search[1],
             type: type
+          },
+          headers: {
+            Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
           }
         })
         .then((response) => {

@@ -90,7 +90,11 @@ export default {
     }
   },
   created: function () {
-    Axios.get('/user-verification-applications/', {})
+    Axios.get('/user-verification-applications/', {
+      headers: {
+        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      }
+    })
     .then((response) => {
       this.verification_applications = response.data.results
       for(var i=0;i<this.verification_applications.length;i++)
@@ -109,7 +113,11 @@ export default {
   },
   methods: {
     getUserName(id) {
-      Axios.get('/users/' + this.verification_applications[id].user + '/', {})
+      Axios.get('/users/' + this.verification_applications[id].user + '/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         this.verification_applications[id].user = response.data.username
       })
@@ -129,6 +137,9 @@ export default {
       Axios.get('/user-verification-applications', {
         params: {
           page: page
+        },
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
         }
       })
         .then((response) => {

@@ -710,7 +710,11 @@ export default {
       // this.$router.push({ name: 'user', params: { userId: row.id } })
     },
     DeleteFoundNotice() {
-      axios.delete('/lost-notices/' + this.id + '/', {})
+      axios.delete('/lost-notices/' + this.id + '/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
       .then((response) => {
         this.$router.push('/lost-list')
       })
@@ -848,7 +852,10 @@ export default {
       axios({
         url: '/lost-notices/delete-image/',
         method: 'post',
-        data: data
+        data: data,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           this.lost_notice_images.splice(index, 1);
@@ -866,7 +873,11 @@ export default {
     imageNoticeDeleteUpdate(){
       this.lost_notice.images = JSON.parse(JSON.stringify(this.lost_notice_images_urls))
       this.lost_notice_origin.images = JSON.parse(JSON.stringify(this.lost_notice_images_urls))
-      axios.put('/lost-notices/'+this.id+'/', this.lost_notice_origin, {})
+      axios.put('/lost-notices/'+this.id+'/', this.lost_notice_origin, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
           console.log(this.lost_notice_images)
           console.log(this.lost_notice.images)
@@ -888,7 +899,11 @@ export default {
     imageNoticeAddUpdate(){
       this.lost_notice.images = JSON.parse(JSON.stringify(this.lost_notice_images_urls))
       this.lost_notice_origin.images = JSON.parse(JSON.stringify(this.lost_notice_images_urls))
-      axios.put('/lost-notices/'+this.id+'/', this.lost_notice_origin, {})
+      axios.put('/lost-notices/'+this.id+'/', this.lost_notice_origin, {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
           if(this.lost_notice.images.length >= 3)
           {
@@ -927,7 +942,10 @@ export default {
       axios({
         url: '/lost-notices/upload-image/',
         method: 'post',
-        data: data
+        data: data,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           // this.lost_notice_images_urls.pop()
@@ -1088,7 +1106,11 @@ export default {
       this.$set(this.lost_notice, "est_lost_end_datetime", this.lost_notice_lost_end_datetime)
       if(true)
       {
-        axios.put('/lost-notices/'+this.id+'/', this.lost_notice, {})
+        axios.put('/lost-notices/'+this.id+'/', this.lost_notice, {
+          headers: {
+            Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+          }
+        })
         .then((response) => {
           is_edited = true
           location.reload()
@@ -1117,7 +1139,11 @@ export default {
         data.append('updated_at', this.lost_notice.updated_at)
         data.append('return_user', this.lost_notice.return_user)
         data.append('images', this.lost_notice.images)
-        axios.put('/lost-notices/'+this.id+'/', data, {})
+        axios.put('/lost-notices/'+this.id+'/', data, {
+          headers: {
+            Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+          }
+        })
         .then((response) => {
           is_edited = true
           location.reload()

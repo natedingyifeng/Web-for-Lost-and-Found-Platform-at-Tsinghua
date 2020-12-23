@@ -318,7 +318,7 @@
       </el-table>
       <el-pagination background
                      layout="prev, pager, next"
-                     :total="1"
+                     :total="lost_notice_sum"
                      class="page-chooser"
                      @current-change="changePage">
       </el-pagination>
@@ -498,11 +498,23 @@ export default {
         address: "",
         latitude: 0,
         longitude: 0
-      }
+      },
+      page_begin: 0,
+      page_end: 9,
+      page_size: 10,
+      lost_notice_sum: 0
     }
   },
   created: function () {
-    Axios.get('/lost-notices/', {})
+    Axios.get('/lost-notices/index/', {
+      params: {
+        start: this.page_begin,
+        end: this.page_end
+      },
+      headers: {
+        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+      }
+    })
       .then((response) => {
           this.lostList = response.data
           for(var i=0;i<this.lostList.results.length;i++)
@@ -518,6 +530,7 @@ export default {
             this.lostList.results[i].status = this.Status[this.lostList.results[i].status]
             this.lostList.results[i].lost_location.locations[0].name = this.lostList.results[i].lost_location.locations[0].name + " 等"
           }
+          this.lost_notice_sum = response.data.total
       })
       .catch((error) => {
         alert('error:' + error)
@@ -731,7 +744,10 @@ export default {
       Axios({
         url: '/lost-notices/',
         method: 'post',
-        data: this.create_lost_notice
+        data: this.create_lost_notice,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           location.reload()
@@ -778,7 +794,10 @@ export default {
       Axios({
         url: '/lost-notices/delete-image/',
         method: 'post',
-        data: data
+        data: data,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           that.lost_notice_images.splice(index, 1);
@@ -809,7 +828,10 @@ export default {
       Axios({
         url: '/lost-notices/upload-image/',
         method: 'post',
-        data: data
+        data: data,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           this.create_lost_notice_image_url.push({url:response.data.url[0]})
@@ -843,7 +865,7 @@ export default {
         }
       })
         .then((response) => {
-          this.lostList = response.data
+          tthis.lostList = response.data
           for(var i=0;i<this.lostList.results.length;i++)
           {
             let est_lost_start_datetime = this.lostList.results[i].est_lost_start_datetime
@@ -855,7 +877,9 @@ export default {
             this.lostList.results[i].created_at=this.extractTime(created_at)
             this.lostList.results[i].updated_at=this.extractTime(updated_at)
             this.lostList.results[i].status = this.Status[this.lostList.results[i].status]
+            this.lostList.results[i].lost_location.locations[0].name = this.lostList.results[i].lost_location.locations[0].name + " 等"
           }
+          this.lost_notice_sum = response.data.total
         }).catch((error) => {
           // alert('error:' + error)
           console.log(error)
@@ -914,11 +938,15 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
-      Axios.get('/lost-notices', {
+      this.page_begin = 0 + (page-1)*this.page_size
+      this.page_end = 9 + (page-1)*this.page_size
+      Axios.get('/lost-notices/index/', {
         params: {
-          [this.select]: this.input,
-          offset: (page - 1) * this.pageSize,
-          limit: this.pageSize
+          start: this.page_begin,
+          end: this.page_end
+        },
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
         }
       })
         .then((response) => {
@@ -934,7 +962,9 @@ export default {
             this.lostList.results[i].created_at=this.extractTime(created_at)
             this.lostList.results[i].updated_at=this.extractTime(updated_at)
             this.lostList.results[i].status = this.Status[this.lostList.results[i].status]
+            this.lostList.results[i].lost_location.locations[0].name = this.lostList.results[i].lost_location.locations[0].name + " 等"
           }
+          this.lost_notice_sum = response.data.total
         }).catch((error) => {
           console.log(error)
           this.$alert(error.response.data)
