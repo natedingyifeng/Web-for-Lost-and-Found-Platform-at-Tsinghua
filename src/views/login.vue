@@ -45,8 +45,16 @@ export default {
   },
   created: function () {
     this.$store.commit('setNavIndex', 0)
-    this.$store.commit('setUserLoginStatus', false)
     console.log(this.$store.getters.getUserLoginStatus)
+    if(this.$store.getters.getUserLoginStatus == "true")
+    {
+      console.log(this.$store.getters.getUserLoginStatus)
+      this.$router.push('/lost-list')
+    }
+    else
+    {
+      this.$router.push('/login')
+    }
   },
   methods: {
     gotoLogin () {
@@ -68,6 +76,7 @@ export default {
         .then((response) => {
           this.$store.commit('setUserToken', response.data)
           this.has_login = true
+          this.$store.commit('setUserLoginStatus', true)
           this.getCurrentUserData()
           // this.$store.commit('setNavIndex', 1)
           // this.getCurrentUserData()
@@ -90,14 +99,14 @@ export default {
           console.log(response.data)
           if(response.data.is_staff == true)
           {
-            this.$router.push('/lost-list')
             this.$store.commit('setUserLoginStatus', true)
+            location.reload()
           }
           else
           {
             this.$alert(error.request, '您不是管理员！')
             this.$store.commit('setUserLoginStatus', false)
-            this.$router.push('/login')
+            location.reload()
           }
           // this.$store.commit('setNavIndex', 1)
           // this.getCurrentUserData()
@@ -110,21 +119,23 @@ export default {
     },
     logout () {
       console.log('logout')
-      Axios({
-        url: 'api/v1/rest-auth/logout/',
-        method: 'post',
-        headers: {
-          Authorization: 'Token ' + this.$store.getters.getUserKey
-        }
-      })
-        .then(() => {
-          this.$store.commit('resetState')
-          this.$router.push('/login')
-        })
-        .catch((error) => {
-          this.$alert(error.request.response, '登出失败！')
-          console.log(error.request)
-        })
+      this.$store.commit('resetState')
+      this.$router.push('/login')
+      // Axios({
+      //   url: 'api/v1/rest-auth/logout/',
+      //   method: 'post',
+      //   headers: {
+      //     Authorization: 'Token ' + this.$store.getters.getUserKey
+      //   }
+      // })
+      //   .then(() => {
+      //     this.$store.commit('resetState')
+      //     this.$router.push('/login')
+      //   })
+      //   .catch((error) => {
+      //     this.$alert(error.request.response, '登出失败！')
+      //     console.log(error.request)
+      //   })
     },
     // <!--进入注册页-->
     gotoLogon () {
@@ -167,7 +178,7 @@ export default {
 #register {
   max-width: 340px;
   margin: 60px auto;
-  background: rgb(228, 226, 226);
+  background: rgb(242, 226, 247);
   padding: 20px 40px;
   border-radius: 10px;
   position: relative;

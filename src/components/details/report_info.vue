@@ -25,6 +25,19 @@
                       type="danger">删除</el-button>
       </div>
     </el-card>
+    <el-dialog class="new_type" title="用户封禁原因" :visible.sync="block_dialogFormVisible">
+      <el-form label-width="100px">
+        <el-form-item label="封禁原因">
+          <el-input autocomplete="off" v-model="block_content" type='textarea'></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="block_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="AcceptReportAndBlock">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
     <el-card class='card'>
       <el-form class="form"
                label-width="100px">
@@ -224,7 +237,10 @@ export default {
         value: 'OTH',
         label: '其他'
       }],
-      applicant: ''
+      applicant: '',
+      block_content: '',
+      block_dialogFormVisible: false,
+      user_data: ''
     }
   },
   created: function () {
@@ -246,14 +262,39 @@ export default {
       // this.$router.push({ name: 'user', params: { userId: row.id } })
     },
     AcceptReport() {
+      this.block_dialogFormVisible=true
+    },
+    AcceptReportAndBlock() {
       this.report.verdict_type = "GUI"
       axios.put('/reports/' + this.id + '/', this.report, {})
       .then((response) => {
-        location.reload()
+        this.block_dialogFormVisible=false
+        this.blockUser()
       })
       .catch((error) => {
         alert('error:' + error)
       })
+    },
+    blockUser(){
+      axios.get('/users/'+this.report.user.id+'/', {})
+        .then((response) => {
+          this.user_data = response.data
+          this.blockUserWithComment()
+        })
+        .catch((error) => {
+          alert('error:' + error)
+        })
+    },
+    blockUserWithComment(){
+      this.user_data.status="SUS"
+      this.user_data.suspended_reason = this.block_content
+      axios.put('/users/'+this.report.user.id+'/', this.user_data, {})
+        .then((response) => {
+          location.reload()
+        })
+        .catch((error) => {
+          this.$alert(error.response.data)
+        })
     },
     RejectReport() {
       this.report.verdict_type = "INN"

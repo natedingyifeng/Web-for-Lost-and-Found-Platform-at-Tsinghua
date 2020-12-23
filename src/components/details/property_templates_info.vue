@@ -6,25 +6,59 @@
       {{'物品模板#' + this.property_template_list.id }}
       <div class="edit">
         <el-button :id="id"
-                      :data="rent_data"
                       target="rent-application"
                       class="change"
                       v-if="isAdmin"
                       @click="change"
+                      :disabled="!notEdit"
                       type="primary">修改</el-button>
         <el-button :id="id"
-                      :data="rent_data"
                       target="rent-application"
                       class="change"
                       v-if="isAdmin"
                       @click="confirm"
+                      :disabled="notEdit"
                       type="primary">确定</el-button>
-        <del-button :id="id"
-                    class="delete"
-                    target="rent-application"
-                    v-if="isAdmin"></del-button>
+        <el-button :id="id"
+                      target="user"
+                      class="change"
+                      v-if="isAdmin"
+                      @click="DeleteTemplateConfirm"
+                      type="danger">删除</el-button>
       </div>
     </el-card>
+    <el-dialog class="create_contact" title="添加属性" :visible.sync="create_field_dialogFormVisible">
+      <el-form label-width="100px">
+        <el-form-item label="属性名称">
+          <el-input autocomplete="off" v-model="create_field.name"></el-input>
+        </el-form-item>
+        <el-form-item label="属性权重">
+          <el-input autocomplete="off" v-model="create_field.details"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="create_field_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="createField">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
+    <el-dialog class="edit_contact" title="修改属性" :visible.sync="edit_field_dialogFormVisible">
+      <el-form label-width="100px">
+        <el-form-item label="属性名称">
+          <el-input autocomplete="off" v-model="edit_field.name"></el-input>
+        </el-form-item>
+        <el-form-item label="属性名称">
+          <el-input autocomplete="off" v-model="edit_field.details"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="edit_field_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="editField">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
     <el-card class='card'>
       <el-form class="form"
                label-width="100px">
@@ -45,7 +79,7 @@
             <el-col span="8">
               <el-form-item label='物品种类'
                       class="label">
-                <el-select v-model="property_type_list.results[property_template_list.type-1].name"
+                <el-select v-model="property_type_list.results[template_type].name"
                           :disabled=notEdit>
                   <el-option v-for="item in property_type_list.results"
                             :key="item.id"
@@ -56,27 +90,6 @@
               </el-form-item>
             </el-col>
           </el-row>
-        </el-form-item>
-        <el-divider>具体内容</el-divider>
-        <el-form-item label='模板属性'
-                      class="label">
-          <el-tag v-for="item in template_fields" 
-                  :disable-transitions="false"
-                  :closable=!notEdit
-                  :key="item" 
-                  @close="handleClose(item)"
-                  :disabled=!notEdit>{{item.name}}</el-tag>
-          <el-input
-            class="input-new-tag"
-            v-if="inputVisible"
-            v-model="inputValue"
-            ref="saveTagInput"
-            size="small"
-            @keyup.enter.native="handleInputConfirm"
-            @blur="handleInputConfirm"
-            style="width:10%;"
-            :disabled=notEdit></el-input>
-          <el-button v-else class="button-new-tag" size="small" @click="showInput" :disabled=notEdit>+ New Tag</el-button>
         </el-form-item>
         <el-form-item label='图片'
                       class="label">
@@ -98,6 +111,45 @@
               <img width="100%" :src="template_image_url" alt="">
             </el-dialog>
           </div>
+        </el-form-item>
+        <el-divider>物品属性</el-divider>
+        <el-form-item label=''
+                      class="label"
+                      label-width="130px">
+          <el-table
+            :data="template_fields"
+            style="width: 80%">
+            <el-table-column
+              prop="name"
+              label="名称"
+              width="330">
+            </el-table-column>
+            <el-table-column
+              prop="details"
+              label="权重"
+              width="330">
+            </el-table-column>
+            <el-table-column>
+              <template slot="header" slot-scope="scope">
+                操作
+                <el-button
+                  size="mini"
+                  type="primary"
+                  icon="el-icon-plus"
+                  @click="handleFieldCreate(scope.$index, scope.row)"
+                  circle></el-button>
+              </template>
+              <template slot-scope="scope">
+                <el-button
+                  size="mini"
+                  @click="handleFieldEdit(scope.$index, scope.row)">编辑</el-button>
+                <el-button
+                  size="mini"
+                  type="danger"
+                  @click="handleFieldDelete(scope.$index, scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
         </el-form-item>
       </el-form>
     </el-card>
@@ -199,7 +251,20 @@ export default {
       template_image_visible: false,
       template_image_url: '',
       template_image_change: false,
-      upload_show:false
+      upload_show:false,
+      create_field_dialogFormVisible: false,
+      edit_field_dialogFormVisible: false,
+      edit_field_id: -1,
+      field_show: [],
+      edit_field: {
+        name: "",
+        details: ""
+      },
+      create_field: {
+        name: "",
+        details: ""
+      },
+      template_type: ""
       // isAdmin: this.$store.getters.isAdmin
     }
   },
@@ -219,22 +284,82 @@ export default {
           {
              var arr = {}
              arr["name"] = this.template_fields_keys[i]
+             arr["details"] = this.property_template_list.fields[this.template_fields_keys[i]]
              this.template_fields.push(arr)
           }
       })
       .catch((error) => {
         alert('error:' + error)
       })
-    axios.get('/property-types', {})
+    axios.get('/property-types/', {})
       .then((response) => {
           this.property_type_list = response.data
+          for(let i=0;i<this.property_type_list.results.length;i++)
+          {
+            if(this.property_template_list.type == this.property_type_list.results[i].id)
+            {
+              this.template_type = i
+            }
+          }
       })
       .catch((error) => {
         alert('error:' + error)
       })
-    this.changePage(1)
+    // this.changePage(1)
   },
   methods: {
+    createField() {
+      let tem = JSON.parse(JSON.stringify(this.create_field))
+      this.template_fields.push(tem)
+      this.create_field.name = ""
+      this.create_field.details = ""
+      this.create_field_dialogFormVisible = false
+    },
+    editField() {
+      let tem = JSON.parse(JSON.stringify(this.edit_field))
+      this.$set(this.template_fields, this.edit_field_id, tem)
+      this.edit_field.name = ""
+      this.edit_field.details = ""
+      this.edit_field_dialogFormVisible = false
+    },
+    handleFieldEdit(index, row) {
+      this.edit_field_dialogFormVisible = true
+      this.edit_field_id = index
+    },
+    handleFieldCreate(index, row) {
+      this.create_field_dialogFormVisible = true
+    },
+    handleFieldDelete(index, row) {
+      this.template_fields.splice(index, 1)
+    },
+    DeleteTemplateConfirm() {
+      this.$confirm('此操作将删除该模板, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.DeleteTemplate()
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+      return false
+    },
+    DeleteTemplate(){
+      axios.delete('/property-templates/' + this.id + '/', {})
+      .then((response) => {
+        this.$router.push('/property-types-list')
+      })
+      .catch((error) => {
+        alert('error:' + error)
+      })
+      this.$message({
+        type: 'success',
+        message: '删除成功!'
+      });
+    },
     imgUrlToFile(url) {
       var self = this;
       var imgLink = url;
@@ -245,7 +370,7 @@ export default {
         var base64 = self.getBase64Image(tempImage);
         var imgblob = self.base64toBlob(base64);
         var filename = self.getFileName(self.ruleForm.coverUrl);
-        this.ruleForm.coverFile = self.blobToFile(imgblob, filename);
+        self.ruleForm.coverFile = self.blobToFile(imgblob, filename);
       };
       tempImage.src = imgLink;
     },
@@ -328,7 +453,7 @@ export default {
       var json = {}
       for(var i=0;i<this.template_fields.length;i++)
       {
-        json[this.template_fields[i].name]=""
+        json[this.template_fields[i].name]=this.template_fields[i].details
       }
       this.property_template_list.fields = json
       if(this.template_image_change == false)

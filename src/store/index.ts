@@ -32,21 +32,25 @@ export default new Vuex.Store({
     setNavIndex (state, index){
       state.navIndex = index
       localStorage.navIndex = index
-    }
+    },
     // setCurrentUser (state, payload) {
     //   state.user = payload.user
     //   localStorage.user = JSON.stringify(payload.user)
     //   state.isAdmin = payload.isAdmin
     //   localStorage.isAdmin = payload.isAdmin
     // },
-    // resetState (state) {
-    //   state.userKey = null // 用户key
-    //   state.isAdmin = false
-    //   state.user = {}
-    //   localStorage.user = JSON.stringify({})
-    //   localStorage.isAdmin = false
-    //   localStorage.userKey = null
-    // }
+    resetState (state) {
+      state.userAccessToken = null // 用户key
+      state.userRefreshToken = null // 用户key
+      state.navIndex = 0
+      state.hasLogin = false
+      state.user = {}
+      localStorage.user = JSON.stringify({})
+      localStorage.userAccessToken = null // 用户key
+      localStorage.userRefreshToken = null // 用户key
+      localStorage.navIndex = 0
+      localStorage.hasLogin = false
+    }
   },
   actions: {
   },

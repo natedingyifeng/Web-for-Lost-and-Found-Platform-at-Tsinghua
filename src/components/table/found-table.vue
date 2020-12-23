@@ -250,7 +250,7 @@
       </el-table>
       <el-pagination background
                      layout="prev, pager, next"
-                     :total="data.count*10/pageSize"
+                     :total="foundList.results.length/pageSize"
                      class="page-chooser"
                      @current-change="changePage">
       </el-pagination>
@@ -302,20 +302,18 @@ export default {
   },
   data: function () {
     return {
+      pageSize: 15,
       notice_dialogFormVisible: false,
       fields_show: false,
       image_visible: false,
       property_template_list: [],
       foundList: [],
       real_author: '',
-      // foundList: [
-      //   {id: 1, created_at: "2020.10.29 9:32", created_by: "李祁", found_item: "一张学生证", found_place: "紫荆食堂", found_time: "10月29日上午九点半", status: "丢失中"},
-      //   {id: 2, created_at: "2020.11.1 12:14", created_by: "徐亦豪", found_item: "一件粉色外套", found_place: "西操", found_time: "11月1日上午十点左右", status: "丢失中"}],
       options: [
         { value: 'search', label: '全部搜索' },
-        { value: 'creator', label: '筛选：创建者' },
-        { value: 'equipment', label: '筛选：拾取物品' },
-        { value: 'address', label: '筛选：拾取地点' },
+        { value: 'author__username', label: '筛选：创建者' },
+        { value: 'property__template__type__name', label: '筛选：物品种类' },
+        { value: 'property__tags__name', label: '筛选：标签' },
         { value: 'status', label: '筛选：状态' }
       ],
       select: 'search',
@@ -410,7 +408,11 @@ export default {
     }
   },
   created: function () {
-    Axios.get('/found-notices/', {})
+    Axios.get('/found-notices/', {
+      params: {
+        limit: this.pageSize
+      }
+    })
       .then((response) => {
           this.foundList = response.data
           for(var i=0;i<this.foundList.results.length;i++)
@@ -528,16 +530,6 @@ export default {
       }
     },
     handleShow(template) {
-      // Axios.get('/property-templates/', {
-      //   params: {
-      //     name: this.create_found_notice.property.template
-      // }})
-      // .then((response) => {
-      //     this.create_template = response.data.results
-      // })
-      // .catch((error) => {
-      //   alert('error:' + error)
-      // })
       let new_template_fields = template.fields;
       this.$set(this, 'create_template_fields', new_template_fields)
       this.$set(this, 'fields_show', true)
@@ -757,50 +749,9 @@ export default {
             this.foundList.results[i].status = this.Status[this.foundList.results[i].status]
           }
         }).catch((error) => {
-          // alert('error:' + error)
           console.log(error)
           this.$alert(error.response.data)
         })
-      // if (this.$store.getters.getUserKey === 'null') {
-      //   return
-      // }
-
-      // if (this.id === -1) {
-      //   Axios.get('/api/v1/rent-application', {
-      //     params: {
-      //       [this.select]: this.input,
-      //       offset: (page - 1) * this.pageSize,
-      //       limit: this.pageSize
-      //     },
-      //     headers: {
-      //       Authorization: 'Token ' + this.$store.getters.getUserKey
-      //     }
-      //   })
-      //     .then((response) => {
-      //       this.rentApplicationList = response.data.results
-      //       this.data = response.data
-      //     }).catch((error) => {
-      //       this.$alert(error.response.data)
-      //     })
-      // } else {
-      //   Axios.get('/api/v1/rent-application/', {
-      //     params: {
-      //       [this.select]: this.input,
-      //       offset: (page - 1) * this.pageSize,
-      //       limit: this.pageSize,
-      //       id: this.id
-      //     }
-      //   })
-      //     .then((response) => {
-      //       this.rentApplicationList = response.data.results
-      //       this.data = response.data
-      //     }).catch((error) => {
-      //       console.log(error.response)
-      //       // alert('error:' + error)
-      //       this.$alert(error.response.data)
-      //       console.log(error)
-      //     })
-      // }
     }
   }
 }

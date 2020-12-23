@@ -97,7 +97,10 @@ export default {
       reports: [],
       options: [
         { value: 'search', label: '全部搜索' },
-        { value: 'creator', label: '筛选：申请者' }
+        { value: 'submit_user__username', label: '筛选：举报者' },
+        { value: 'user__username', label: '筛选：被举报者' },
+        { value: 'type', label: '筛选：举报类型' },
+        { value: 'verdict_type', label: '筛选：状态' }
       ],
       select: 'search',
       input: '',
@@ -183,46 +186,26 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
-      // if (this.$store.getters.getUserKey === 'null') {
-      //   return
-      // }
-
-      // if (this.id === -1) {
-      //   Axios.get('/api/v1/rent-application', {
-      //     params: {
-      //       [this.select]: this.input,
-      //       offset: (page - 1) * this.pageSize,
-      //       limit: this.pageSize
-      //     },
-      //     headers: {
-      //       Authorization: 'Token ' + this.$store.getters.getUserKey
-      //     }
-      //   })
-      //     .then((response) => {
-      //       this.rentApplicationList = response.data.results
-      //       this.data = response.data
-      //     }).catch((error) => {
-      //       this.$alert(error.response.data)
-      //     })
-      // } else {
-      //   Axios.get('/api/v1/rent-application/', {
-      //     params: {
-      //       [this.select]: this.input,
-      //       offset: (page - 1) * this.pageSize,
-      //       limit: this.pageSize,
-      //       id: this.id
-      //     }
-      //   })
-      //     .then((response) => {
-      //       this.rentApplicationList = response.data.results
-      //       this.data = response.data
-      //     }).catch((error) => {
-      //       console.log(error.response)
-      //       // alert('error:' + error)
-      //       this.$alert(error.response.data)
-      //       console.log(error)
-      //     })
-      // }
+      Axios.get('/reports', {
+        params: {
+          [this.select]: this.input,
+          offset: (page - 1) * this.pageSize,
+          limit: this.pageSize
+        }
+      })
+        .then((response) => {
+          this.reports = response.data.results
+          for(var i=0;i<this.reports.length;i++)
+          {
+            this.reports[i].created_at = this.extractTime(this.reports[i].created_at)
+            this.reports[i].verdict_type = this.Status[this.reports[i].verdict_type]
+            this.reports[i].type = this.Types[this.reports[i].type]
+          }
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
     },
     extractTime(time){
       let date=time.split("T");

@@ -117,11 +117,11 @@ export default {
       input: '',
       options: [
         { value: 'search', label: '全部搜索' },
-        { value: 'first_name', label: '筛选：名' },
+        { value: 'username', label: '筛选：用户名' },
         { value: 'last_name', label: '筛选：姓' },
-        { value: 'address', label: '筛选：地址' },
-        { value: 'email', label: '筛选：邮箱' },
-        { value: 'phone', label: '筛选：电话' }
+        { value: 'first_name', label: '筛选：名' },
+        { value: 'student_id', label: '筛选：学生证号' },
+        { value: 'status', label: '筛选：状态' }
       ],
       status_options: [{
         value: 'ACT',
@@ -244,6 +244,26 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
+      Axios.get('/users', {
+        params: {
+          [this.select]: this.input,
+          offset: (page - 1) * this.pageSize,
+          limit: this.pageSize
+        }
+      })
+        .then((response) => {
+          this.userList = response.data
+          for(var i=0;i<this.userList.results.length;i++)
+          {
+            let joined_datetime = this.userList.results[i].date_joined
+            this.userList.results[i].date_joined=this.extractTime(joined_datetime)
+            this.userList.results[i].status = this.Status[this.userList.results[i].status]
+          }
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
       // if (this.$store.getters.getUserKey === 'null') {
       //   return
       // }

@@ -16,6 +16,38 @@
                     type="primary">新建物品模板</el-button>
       </div>
     </el-card>
+    <el-dialog class="create_contact" title="添加属性" :visible.sync="create_field_dialogFormVisible">
+      <el-form label-width="100px">
+        <el-form-item label="属性名称">
+          <el-input autocomplete="off" v-model="create_field.name"></el-input>
+        </el-form-item>
+        <el-form-item label="属性权重">
+          <el-input-number v-model="create_field.details" controls-position="right" :min="1" :max="10" size="mini" width="60%"></el-input-number>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="create_field_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="createField">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
+    <el-dialog class="edit_contact" title="修改属性" :visible.sync="edit_field_dialogFormVisible">
+      <el-form label-width="100px">
+        <el-form-item label="属性名称">
+          <el-input autocomplete="off" v-model="edit_field.name"></el-input>
+        </el-form-item>
+        <el-form-item label="属性名称">
+          <el-input-number v-model="edit_field.details" controls-position="right" :min="1" :max="10" size="mini" width="60%"></el-input-number>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="edit_field_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="editField">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
     <el-dialog class="new_type" title="新建物品种类" :visible.sync="type_dialogFormVisible">
       <el-form label-width="100px">
         <el-form-item label="物品种类名称">
@@ -44,6 +76,7 @@
     </el-dialog>
     <el-dialog class="new_type" title="新建物品模板" :visible.sync="template_dialogFormVisible">
       <el-form label-width="100px">
+        <el-divider>基本信息</el-divider>
         <el-form-item label="物品模板名称">
           <el-input autocomplete="off" v-model="template.name"></el-input>
         </el-form-item>
@@ -73,23 +106,44 @@
             <img width="100%" :src="template.thumbnail_url" alt="">
           </el-dialog>
         </el-form-item>
-        <el-form-item label='模板属性'
-                      class="label">
-          <el-tag v-for="item in template_fields" 
-                  :disable-transitions="false"
-                  :key="item" 
-                  @close="handleClose(item)"
-                  :closable="true">{{item.name}}</el-tag>
-          <el-input
-            class="input-new-tag"
-            v-if="inputVisible"
-            v-model="inputValue"
-            ref="saveTagInput"
-            size="small"
-            @keyup.enter.native="handleInputConfirm"
-            @blur="handleInputConfirm"
-            style="width:15%;"></el-input>
-          <el-button v-else class="button-new-tag" size="small" @click="showInput">+ New Tag</el-button>
+        <el-divider>模板属性</el-divider>
+        <el-form-item label=''
+                      class="label"
+                      label-width="40px">
+          <el-table
+            :data="template_fields"
+            style="width: 100%">
+            <el-table-column
+              prop="name"
+              label="名称"
+              width="330">
+            </el-table-column>
+            <el-table-column
+              prop="details"
+              label="权重"
+              width="330">
+            </el-table-column>
+            <el-table-column>
+              <template slot="header" slot-scope="scope">
+                操作
+                <el-button
+                  size="mini"
+                  type="primary"
+                  icon="el-icon-plus"
+                  @click="handleFieldCreate(scope.$index, scope.row)"
+                  circle></el-button>
+              </template>
+              <template slot-scope="scope">
+                <el-button
+                  size="mini"
+                  @click="handleFieldEdit(scope.$index, scope.row)">编辑</el-button>
+                <el-button
+                  size="mini"
+                  type="danger"
+                  @click="handleFieldDelete(scope.$index, scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -215,7 +269,19 @@ export default {
       template_fields: [],
       inputVisible: false,
       inputValue: '',
-      data: { count: 0 }
+      data: { count: 0 },
+      create_field_dialogFormVisible: false,
+      edit_field_dialogFormVisible: false,
+      edit_field_id: -1,
+      field_show: [],
+      edit_field: {
+        name: "",
+        details: ""
+      },
+      create_field: {
+        name: "",
+        details: ""
+      },
     }
   },
   created: function () {
@@ -249,6 +315,30 @@ export default {
     this.changePage(1)
   },
   methods: {
+    createField() {
+      let tem = JSON.parse(JSON.stringify(this.create_field))
+      this.template_fields.push(tem)
+      this.create_field.name = ""
+      this.create_field.details = ""
+      this.create_field_dialogFormVisible = false
+    },
+    editField() {
+      let tem = JSON.parse(JSON.stringify(this.edit_field))
+      this.$set(this.template_fields, this.edit_field_id, tem)
+      this.edit_field.name = ""
+      this.edit_field.details = ""
+      this.edit_field_dialogFormVisible = false
+    },
+    handleFieldEdit(index, row) {
+      this.edit_field_dialogFormVisible = true
+      this.edit_field_id = index
+    },
+    handleFieldCreate(index, row) {
+      this.create_field_dialogFormVisible = true
+    },
+    handleFieldDelete(index, row) {
+      this.template_fields.splice(index, 1)
+    },
     handleClose(item) {
       this.template_fields.splice(this.template_fields.indexOf(item), 1);
     },
@@ -322,24 +412,68 @@ export default {
     handleDelete(index, row) {
       if(row.type)
       {
-        Axios.delete('/property-templates/' + row.id + '/', {})
-        .then((response) => {
-            this.reload()
-        })
-        .catch((error) => {
-          alert('error:' + error)
-        })
+        this.DeleteTemplateConfirm(row.id)
       }
       else
       {
-        Axios.delete('/property-types/' + row.id + '/', {})
+        this.DeleteTypeConfirm(row.id)
+      }
+    },
+    DeleteTypeConfirm(id) {
+      this.$confirm('此操作将删除该物品种类, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.DeleteType(id)
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+      return false
+    },
+    DeleteType(id){
+      Axios.delete('/property-types/' + id + '/', {})
         .then((response) => {
             this.reload()
         })
         .catch((error) => {
           alert('error:' + error)
         })
-      }
+      this.$message({
+        type: 'success',
+        message: '删除成功!'
+      });
+    },
+    DeleteTemplateConfirm(id) {
+      this.$confirm('此操作将删除该物品模板, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.DeleteTemplate(id)
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+      return false
+    },
+    DeleteTemplate(id){
+      Axios.delete('/property-templates/' + id + '/', {})
+        .then((response) => {
+            this.reload()
+        })
+        .catch((error) => {
+          alert('error:' + error)
+        })
+      this.$message({
+        type: 'success',
+        message: '删除成功!'
+      });
     },
     handleImageUploadSuccess(file) {
       this.template.thumbnail_url = file.url
@@ -380,7 +514,7 @@ export default {
       var json = {}
       for(var i=0;i<this.template_fields.length;i++)
       {
-        json[this.template_fields[i].name]=""
+        json[this.template_fields[i].name]=this.template_fields[i].details
       }
       this.template.fields = JSON.stringify(json)
       let data=new FormData();

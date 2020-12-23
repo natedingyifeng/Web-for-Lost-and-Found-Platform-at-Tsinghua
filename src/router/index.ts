@@ -183,6 +183,11 @@ const routes: Array<RouteConfig> = [
     component: () => import('../views/account.vue')
   },
   {
+    path: '/create-accounts-invitation',
+    name: 'create-accounts-invitation',
+    component: () => import('../views/account_invitation.vue')
+  },
+  {
     path: '/login',
     name: 'login',
     component: () => import('../views/login.vue')

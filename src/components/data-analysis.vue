@@ -128,14 +128,14 @@
                label-width="118px">
         <el-form-item label='数据类型'
                       class="label">
-          <el-radio-group v-model="data_type">
+          <el-radio-group v-model="data_type" @change="change">
             <el-radio-button label="月报"></el-radio-button>
             <el-radio-button label="日报"></el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item label='数据指标'
                       class="label">
-          <el-radio-group v-model="data_target">
+          <el-radio-group v-model="data_target" @change="change">
             <el-radio-button label="寻物启事"></el-radio-button>
             <el-radio-button label="失物招领"></el-radio-button>
           </el-radio-group>
@@ -220,10 +220,11 @@ export default {
     return {
       data_type: '月报',
       data_target: '寻物启事',
-      date_search: [],
+      date_search: ["2020-07-01T12:00:00+08:00","2021-06-01T12:00:00+08:00"],
       date_range: [],
       month_range: [],
       date_range_count: [],
+      month_range_count: [],
       user_data: {
         total: '',
         verified: '',
@@ -256,24 +257,11 @@ export default {
     this.getUserData()
     this.getFoundNoticeData()
     this.getLostNoticeData()
-    // this.$nextTick(() => {
-    //   // this.getUserData();
-    //   this.drawDataTrendLine();
-    //   this.drawUserStatusPie();
-    //   this.drawUserIdentityPie();
-    //   this.drawLostNoticeStatusPie();
-    //   this.drawFoundNoticeStatusPie();
-    // });
-    // this.getUserData();
-    // this.drawDataTrendLine();
-    // this.drawUserStatusPie();
-    // this.drawUserIdentityPie();
-    // this.drawLostNoticeStatusPie();
-    // this.drawFoundNoticeStatusPie();
+    this.change()
   },
   methods: {
-    pad(num, n) {  
-      return Array(n>num?(n-(''+num).length+1):0).join(0)+num;  
+    padding(num, length) {
+      return (Array(length).join("0") + num).slice(-length);
     },
     getBetweenMonthStr(start,end){
       var result = [];
@@ -281,20 +269,43 @@ export default {
       var endDay = end.split("-");
       var found_all = false
       result.push(start)
+      this.month_range_count = []
+      let has_filled = false
+      for(let j=0;j<this.found_notice_timeline.length;j++)
+      {
+        if(start == moment(this.found_notice_timeline[j].month).format("YYYY-MM"))
+        {
+          this.month_range_count.push(this.found_notice_timeline[j].count)
+          has_filled = true
+        }
+      }
+      if(has_filled == false) this.month_range_count.push(0)
+      else has_filled = false
       while(found_all == false)
       {
         let tem;
         if(beginDay[1] != '12')
         {
-          beginDay[1] = this.pad(Number(beginDay[1])+1,2)
+          beginDay[1] = this.padding(Number(beginDay[1])+1,2)
         }
         else
         {
           beginDay[0] = String(Number(beginDay[0])+1)
-          beginDay[1] = this.pad(1,2)
+          beginDay[1] = this.padding(1,2)
         }
         tem = beginDay[0] + '-' + beginDay[1]
         result.push(tem)
+        let has_filled = false
+        for(let j=0;j<this.found_notice_timeline.length;j++)
+        {
+          if(tem == moment(this.found_notice_timeline[j].month).format("YYYY-MM"))
+          {
+            this.month_range_count.push(this.found_notice_timeline[j].count)
+            has_filled = true
+          }
+        }
+        if(has_filled == false) this.month_range_count.push(0)
+        else has_filled = false
         if(tem == end) found_all = true
       }
       return result
@@ -459,18 +470,66 @@ export default {
         .then((response) => {
           me.found_notice_timeline = response.data
           console.log(response.data)
-          this.month_range = this.getBetweenMonthStr(moment(this.date_search[0]).format("YYYY-MM"), moment(this.date_search[1]).format("YYYY-MM"))
-          console.log(this.month_range)
           if(type == "month")
           {
             this.month_range = this.getBetweenMonthStr(moment(this.date_search[0]).format("YYYY-MM"), moment(this.date_search[1]).format("YYYY-MM"))
             console.log(this.month_range)
+            console.log(this.month_range_count)
+            this.drawDataTrendLine(this.month_range,this.month_range_count)
           }
           else if(type == "day")
           {
             this.date_range = this.getBetweenDateStr(moment(this.date_search[0]).format("YYYY-MM-DD"), moment(this.date_search[1]).format("YYYY-MM-DD"))
             if(this.date_range.length <=60) this.label_interval = 5
             else this.label_interval = 10
+            this.drawDataTrendLine(this.date_range,this.date_range_count)
+          }
+          // this.drawDataTrendLine()
+        })
+        .catch((error) => {
+          alert('error:' + error)
+        })
+      }
+      else if(this.data_target == "寻物启事")
+      {
+        let type = '';
+        if(this.data_type == "月报")
+        {
+          type = "month"
+        }
+        else if(this.data_type == "日报")
+        {
+          type = "day"
+        }
+        let data = {
+          start_time: this.date_search[0],
+          end_time: this.date_search[1],
+          type: type
+        }
+        console.log(data)
+        Axios.get('/lost-notices/stat-timeline/', {
+          params: {
+            start_time: this.date_search[0],
+            end_time: this.date_search[1],
+            type: type
+          }
+        })
+        .then((response) => {
+          me.found_notice_timeline = response.data
+          console.log(response.data)
+          if(type == "month")
+          {
+            this.month_range = this.getBetweenMonthStr(moment(this.date_search[0]).format("YYYY-MM"), moment(this.date_search[1]).format("YYYY-MM"))
+            console.log(this.month_range)
+            console.log(this.month_range_count)
+            this.drawDataTrendLine(this.month_range,this.month_range_count)
+          }
+          else if(type == "day")
+          {
+            this.date_range = this.getBetweenDateStr(moment(this.date_search[0]).format("YYYY-MM-DD"), moment(this.date_search[1]).format("YYYY-MM-DD"))
+            if(this.date_range.length <=60) this.label_interval = 5
+            else this.label_interval = 10
+            this.drawDataTrendLine(this.date_range,this.date_range_count)
           }
           // this.drawDataTrendLine()
         })
@@ -492,7 +551,7 @@ export default {
       let d = new Date(this.date_search[0])
       console.log(d)
     },
-    drawDataTrendLine() {
+    drawDataTrendLine(range,count) {
       this.dataTrendLine = echarts.init(document.getElementById('DataTrendLine'));
 
       this.dataTrendLine.setOption({
@@ -511,7 +570,7 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: this.date_range,
+          data: range,
           axisLabel: {
             interval: 'auto'
           },
@@ -528,10 +587,10 @@ export default {
           type: 'value'
         },
         series: [{
-          data: this.date_range_count,
+          data: count,
           type: 'line',
           symbol: 'diamond',
-          symbolSize: 10
+          symbolSize: 8
         }]
       });
       // this.dataTrendLine.showLoading();

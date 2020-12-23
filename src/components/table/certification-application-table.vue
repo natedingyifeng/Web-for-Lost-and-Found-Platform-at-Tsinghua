@@ -92,7 +92,8 @@ export default {
       verification_applications: [],
       options: [
         { value: 'search', label: '全部搜索' },
-        { value: 'creator', label: '筛选：申请者' }
+        { value: 'user__username', label: '筛选：申请者' },
+        { value: 'status', label: '筛选：状态' }
       ],
       select: 'search',
       input: '',
@@ -139,6 +140,26 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
+      Axios.get('/user-verification-applications', {
+        params: {
+          [this.select]: this.input,
+          offset: (page - 1) * this.pageSize,
+          limit: this.pageSize
+        }
+      })
+        .then((response) => {
+          this.verification_applications = response.data.results
+          for(var i=0;i<this.verification_applications.length;i++)
+          {
+            this.getUserName(i)
+            this.verification_applications[i].created_at = this.extractTime(this.verification_applications[i].created_at)
+            this.verification_applications[i].status = this.Status[this.verification_applications[i].status]
+          }
+        }).catch((error) => {
+          // alert('error:' + error)
+          console.log(error)
+          this.$alert(error.response.data)
+        })
       // if (this.$store.getters.getUserKey === 'null') {
       //   return
       // }

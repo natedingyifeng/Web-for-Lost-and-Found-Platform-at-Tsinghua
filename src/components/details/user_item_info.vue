@@ -11,6 +11,7 @@
                         class="change"
                         v-if="isAdmin"
                         @click="change"
+                        :disabled="!notEdit"
                         type="primary">修改</el-button>
         <el-button :id="id"
                       :data="data"
@@ -18,6 +19,7 @@
                       class="change"
                       v-if="isAdmin"
                       @click="confirm"
+                      :disabled="notEdit"
                       type="primary">确定</el-button>
         <el-button :id="id"
                     :data="data"
@@ -26,10 +28,12 @@
                     v-if="isAdmin"
                     @click="block_dialogFormVisible=true"
                     type="danger">封禁</el-button>
-        <del-button :id="id"
-                    class="delete"
-                    target="user"
-                    v-if="isAdmin"></del-button>
+        <el-button :id="id"
+                      target="user"
+                      class="change"
+                      v-if="isAdmin"
+                      @click="DeleteUserConfirm"
+                      type="danger">删除</el-button>
       </div>
     </el-card>
     <el-dialog class="new_type" title="封禁原因" :visible.sync="block_dialogFormVisible">
@@ -41,7 +45,7 @@
       <div slot="footer" class="dialog-footer">
         <div class="foot">
           <el-button @click="block_dialogFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="blockUser">确 定</el-button>
+          <el-button type="primary" @click="blockUserConfirm">确 定</el-button>
         </div>
       </div>
     </el-dialog>
@@ -366,8 +370,52 @@ export default {
     this.changePage(1)
   },
   methods: {
+    DeleteUser() {
+      axios.delete('/users/' + this.id + '/', {})
+      .then((response) => {
+        this.$router.push('/user-list')
+      })
+      .catch((error) => {
+        alert('error:' + error)
+      })
+      this.$message({
+        type: 'success',
+        message: '删除成功!'
+      });
+    },
+    DeleteUserConfirm() {
+      this.$confirm('此操作将删除该用户, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.DeleteUser()
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+      return false
+    },
+    blockUserConfirm() {
+      this.$confirm('此操作将封禁该用户, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.blockUser()
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消封禁'
+          });          
+        });
+      return false
+    },
     blockUser(){
       this.user_data.status="SUS"
+      this.user_data.suspended_reason = this.block_content
       axios.put('/users/'+this.id+'/', this.user_data, {})
         .then((response) => {
           location.reload()
@@ -488,7 +536,7 @@ export default {
       // this.$router.push({ name: 'user', params: { userId: row.id } })
     },
     enterLostNotice: function (id) {
-      this.$router.push({ name: 'lost', params: { foundId: id } })
+      this.$router.push({ name: 'lost', params: { lostId: id } })
       // this.$router.push({ name: 'user', params: { userId: row.id } })
     },
     openDialog: function () {

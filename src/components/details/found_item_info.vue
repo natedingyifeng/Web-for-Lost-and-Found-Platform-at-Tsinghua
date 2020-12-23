@@ -6,24 +6,24 @@
       {{'失物招领#' + this.id }}
       <div class="edit">
         <el-button :id="id"
-                      :data="rent_data"
                       target="rent-application"
                       class="change"
                       v-if="isAdmin"
                       @click="change"
+                      :disabled="!notEdit"
                       type="primary">修改</el-button>
         <el-button :id="id"
-                      :data="rent_data"
                       target="rent-application"
                       class="change"
                       v-if="isAdmin"
                       @click="confirm"
+                      :disabled="notEdit"
                       type="primary">确定</el-button>
         <el-button :id="id"
                       target="user"
                       class="change"
                       v-if="isAdmin"
-                      @click="DeleteFoundNotice"
+                      @click="DeleteFoundNoticeConfirm"
                       type="danger">删除</el-button>
       </div>
     </el-card>
@@ -85,18 +85,18 @@
         <el-divider>启事信息</el-divider>
         <el-form-item label='ID'>
           <el-row>
-            <el-col span="2">
+            <el-col :span=2>
               <el-input v-model="id"
                           :disabled="true"></el-input>
             </el-col>
-            <el-col span="5">
+            <el-col :span=5>
               <el-form-item label='创建者姓名'>
                 <el-input v-model="found_notice.author.username"
                           :disabled="true"
                           style="width:100%;"></el-input>
               </el-form-item>
             </el-col>
-            <el-col span="7">
+            <el-col :span=7>
               <el-form-item label='创建时间'>
               <el-date-picker
                 v-model="found_notice_created_at"
@@ -106,7 +106,7 @@
               </el-date-picker>
               </el-form-item>
             </el-col>
-            <el-col span="7">
+            <el-col :span=7>
               <el-form-item label='最近更新'>
               <el-date-picker
                 v-model="found_notice_updated_at"
@@ -116,10 +116,10 @@
               </el-date-picker>
               </el-form-item>
             </el-col>
-            <el-col span="1">
+            <el-col :span=1>
               <el-form-item>
                 <el-button type='primary'
-                          @click="enterUser(rent_data.renter)"
+                          @click="enterUser(found_notice.author.id)"
                           style="margin-left:20px;">查看创建者</el-button>
               </el-form-item>
             </el-col>
@@ -129,7 +129,7 @@
         <el-form-item label='拾取物品种类'
                       class="label">
           <el-row>
-            <el-col span="3">
+            <el-col :span=3>
               <el-select v-model="found_notice.property.template"
                      :disabled=notEdit>
                 <el-option v-for="item in found_notice_item_options"
@@ -139,19 +139,14 @@
                 </el-option>
               </el-select>
             </el-col>
-            <el-col span="5" :offset="1">
+            <el-col :span=5 :offset="1">
               <el-form-item label='拾取物品名称'
                             class="label">
                 <el-input v-model="found_notice.property.name"
                           :disabled=notEdit></el-input>
               </el-form-item>
             </el-col>
-            <el-col span="7">
-              <!-- <el-time-select
-                placeholder="拾取时间"
-                v-model="found_notice_found_datetime"
-                :disabled=notEdit>
-              </el-time-select> -->
+            <el-col :span=7>
               <el-form-item label='拾取时间'
                             class="label">
                 <el-date-picker
@@ -163,7 +158,7 @@
                 </el-date-picker>
               </el-form-item>
             </el-col>
-            <el-col span="8">
+            <el-col :span=8>
               <el-form-item label='拾取地点'
                             class="label">
                 <el-input v-model="found_notice.found_location"
@@ -200,8 +195,6 @@
         </el-form-item>
         <el-form-item label='状态'
                       class="label">
-          <!-- <el-input v-model="data.status"
-                    :disabled="diseditable"></el-input> -->
           <el-select v-model="found_notice.status"
                      :disabled=notEdit>
             <el-option v-for="item in found_notice_status_options"
@@ -224,7 +217,8 @@
               :on-exceed="handleExceed"
               list-type="picture-card"
               :file-list="found_notice_images_urls"
-              :on-change="saveImage">
+              :on-change="saveImage"
+              :disabled=notEdit>
               <i class="el-icon-plus"></i>
             </el-upload>
             <el-dialog :visible.sync="found_notice_image_visible">
@@ -232,14 +226,6 @@
             </el-dialog>
           </div>
         </el-form-item>
-        <!-- <el-form-item label='图片'
-                      class="label">
-            <el-row :gutter="10">
-              <el-col v-for="url in found_notice.images" :key="url" span="7">
-                <el-image :key="url.url" :src="url.url" :preview-src-list="url.url" fit="scale-down" lazy ></el-image>
-              </el-col>
-            </el-row>
-        </el-form-item> -->
         <el-divider>联系方式</el-divider>
         <el-form-item label=''
                       class="label">
@@ -264,9 +250,6 @@
             <el-table-column>
               <template slot="header" slot-scope="scope">
                 操作
-                <!-- <i class="el-icon-circle-plus"
-                   @click="handleCreate(scope.$index, scope.row)"
-                   :disabled=notEdit></i> -->
                 <el-button
                   size="mini"
                   type="primary"
@@ -289,10 +272,20 @@
             </el-table-column>
           </el-table>
         </el-form-item>
-        <!-- <el-form-item v-for="item in found_data[0].found_contact_info" :key="item.type" :label="item.type" class="label">
-          <el-input v-model="item.content"
-                    :readOnly=notEdit></el-input>
-        </el-form-item> -->
+        <el-divider>匹配启事</el-divider>
+        <el-timeline :reverse="reverse" width="60%">
+          <el-timeline-item
+            v-for="(activity, index) in found_notice.matching_entries"
+            :key="index"
+            :timestamp="'匹配度：'+activity.matching_degree"
+            placement="top">
+            <el-card>
+              <el-link target="_blank" @click="enterLostNotice(activity.lost_notice)">{{"寻物启事: "+activity.lost_property_name+"#"+activity.lost_notice}}</el-link>
+              <p>{{"失物名称："+activity.lost_property_name}}</p>
+              <p>{{"失物描述："+activity.lost_notice_description}}</p>
+            </el-card>
+          </el-timeline-item>
+        </el-timeline>
       </el-form>
     </el-card>
   </div>
@@ -346,6 +339,14 @@
 .is_hidden .el-upload--picture-card{
   display:none;
 }
+.el-timeline {
+  padding-left: 150px;
+  padding-right: 150px;
+}
+</style>
+
+<style scoped>
+
 </style>
 
 <script>
@@ -441,20 +442,6 @@ export default {
     }
   },
   created: function () {
-    // axios.get('/api/v1/rent-application/' + this.id, {
-    //   headers: {
-    //     Authorization: 'Token ' + this.$store.getters.getUserKey
-    //   }
-    // })
-    //   .then((response) => {
-    //     this.rent_data = response.data
-    //     this.isrenter = this.rent_data.renter === this.$store.getters.getCurrentUser.id
-    //     this.isborrower = this.rent_data.borrower === this.$store.getters.getCurrentUser.id
-    //     console.log(this.isborrower)
-    //   })
-    //   .catch((error) => {
-    //     this.$alert(error.response.data)
-    //   })
     axios.get('/found-notices/'+this.id, {
       // headers: {
       //   Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
@@ -506,9 +493,12 @@ export default {
       .catch((error) => {
         alert('error:' + error)
       })
-    this.changePage(1)
   },
   methods: {
+    enterLostNotice: function (id) {
+      this.$router.push({ name: 'lost', params: { lostId: id } })
+      // this.$router.push({ name: 'user', params: { userId: row.id } })
+    },
     DeleteFoundNotice() {
       axios.delete('/found-notices/' + this.id + '/', {})
       .then((response) => {
@@ -517,6 +507,25 @@ export default {
       .catch((error) => {
         alert('error:' + error)
       })
+      this.$message({
+        type: 'success',
+        message: '删除成功!'
+      });
+    },
+    DeleteFoundNoticeConfirm() {
+      this.$confirm('此操作将删除该启事, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.DeleteFoundNotice()
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+      return false
     },
     checkPhoneValidation(phone){
       if(phone != '')
@@ -618,6 +627,10 @@ export default {
           index = i
         }
       }
+      console.log(this.found_notice_images)
+      console.log(this.found_notice.images)
+      console.log(this.found_notice_origin.images)
+      console.log(this.found_notice_images_urls)
       let data=new FormData();
       let that=this
       data.append('url', this.found_notice_images_urls[index].url)
@@ -628,22 +641,28 @@ export default {
         data: data
       })
         .then((response) => {
-          that.found_notice_images.splice(index, 1);
-          that.found_notice.images.splice(index, 1);
-          that.found_notice_origin.images.splice(index, 1);
-          that.found_notice_images_urls.splice(index, 1);
-          if(that.found_notice_images_urls.length < 3)
+          this.found_notice_images.splice(index, 1);
+          this.found_notice_images_urls.splice(index, 1);
+          if(this.found_notice_images_urls.length < 3)
           {
-            that.upload_show = false
+            this.upload_show = false
           }
-          console.log(that.found_notice.images)
+          this.imageNoticeDeleteUpdate()
         })
         .catch((error) => {
           alert('error:' + error)
-        })
+        });
+    },
+    imageNoticeDeleteUpdate(){
+      this.found_notice.images = JSON.parse(JSON.stringify(this.found_notice_images_urls))
+      this.found_notice_origin.images = JSON.parse(JSON.stringify(this.found_notice_images_urls))
       axios.put('/found-notices/'+this.id+'/', this.found_notice_origin, {})
         .then((response) => {
-          if(this.found_notice.images.length == 0)
+          console.log(this.found_notice_images)
+          console.log(this.found_notice.images)
+          console.log(this.found_notice_origin.images)
+          console.log(this.found_notice_images_urls)
+          if(this.found_notice.images.length < 3)
           {
             this.upload_show = false
           }
@@ -651,10 +670,27 @@ export default {
         .catch((error) => {
           this.$alert(error.response.data)
         })
-      console.log(index)
       this.$message({
         type: 'success',
         message: '删除成功!'
+      });
+    },
+    imageNoticeAddUpdate(){
+      this.found_notice.images = JSON.parse(JSON.stringify(this.found_notice_images_urls))
+      this.found_notice_origin.images = JSON.parse(JSON.stringify(this.found_notice_images_urls))
+      axios.put('/found-notices/'+this.id+'/', this.found_notice_origin, {})
+        .then((response) => {
+          if(this.found_notice.images.length >= 3)
+          {
+            this.upload_show = true
+          }
+        })
+        .catch((error) => {
+          this.$alert(error.response.data)
+        })
+      this.$message({
+        type: 'success',
+        message: '添加成功!'
       });
     },
     handleFoundImageRemoveConfirm(file) {
@@ -673,14 +709,28 @@ export default {
       return false
     },
     saveImage(file,fileList) {
-      this.found_notice_images_urls.push({url:file.url})
+      // this.found_notice_images_urls.push(file.url)
       this.found_notice_images.push(file.raw)
       this.found_notice_image_change = true
-      if(this.found_notice.images.length + this.found_notice_images.length > 3)
-      {
-        this.upload_show = true
-      }
-      console.log(this.found_notice_images)
+      let data=new FormData();
+      data.append(file.name, file.raw)
+      axios({
+        url: '/found-notices/upload-image/',
+        method: 'post',
+        data: data
+      })
+        .then((response) => {
+          // this.found_notice_images_urls.pop()
+          if(this.found_notice_images_urls.length >= 3)
+          {
+            this.upload_show = true
+          }
+          this.found_notice_images_urls.push({url:response.data.url[0]})
+          this.imageNoticeAddUpdate()
+        })
+        .catch((error) => {
+          alert('error:' + error)
+        })
     },
     handleExceed(files, fileList) {
       this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
@@ -825,7 +875,7 @@ export default {
       }
       let is_edited = false
       this.$set(this.found_notice, "found_datetime", this.found_notice_found_datetime)
-      if(this.template_image_change == false)
+      if(true)
       {
         axios.put('/found-notices/'+this.id+'/', this.found_notice, {})
         .then((response) => {
@@ -854,7 +904,7 @@ export default {
         data.append('created_at', this.found_notice.created_at)
         data.append('updated_at', this.found_notice.updated_at)
         data.append('return_user', this.found_notice.return_user)
-        data.append('images', this.found_notice_images)
+        data.append('images', this.found_notice.images)
         axios.put('/found-notices/'+this.id+'/', data, {})
         .then((response) => {
           is_edited = true
@@ -866,9 +916,6 @@ export default {
       }
       this.$message('修改成功')
       this.notEdit=true
-    },
-    enterEquipment: function (id) {
-      this.$router.push({ name: 'equipment', params: { equipmentId: id } })
     },
     enterUser: function (id) {
       this.$router.push({ name: 'user', params: { userId: id } })

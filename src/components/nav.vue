@@ -43,7 +43,6 @@
                  style="background-color:white;width: 40px;height: 40px;border-radius: 50%;float: left;margin-top: 10px;" />
           </div>
         </template>
-        <el-menu-item index="4-1">个人中心</el-menu-item>
         <el-menu-item index="4-3"
                       @click="logout">退出登录</el-menu-item>
       </el-submenu>
@@ -68,10 +67,16 @@ import Axios from 'axios'
 export default {
   data () {
     return {
-      hasLogin: this.$store.getters.getUserLoginStatus,
+      hasLogin: this.$store.getters.getUserAccessToken,
       activeIndex: '0',
       inputSearch: '',
       select: '1'
+    }
+  },
+  created: function(){
+    if(this.$store.getters.getUserLoginStatus != "true")
+    {
+      this.$router.push('/login')
     }
   },
   methods: {
@@ -130,29 +135,31 @@ export default {
       this.$router.go(path)
     },
     logout () {
+      this.$store.commit('resetState')
+      location.reload()
       // console.log('logout')
       // console.log(this.$store.getters.getUserKey)
-      Axios({
-        url: '/api/v1/rest-auth/logout/',
-        method: 'post',
-        headers: {
-          Authorization: 'Token ' + this.$store.getters.getUserKey
-        }
-      })
-        .then(() => {
-          this.$store.commit('resetState')
-          this.$router.push('/login')
-          location.reload()
-          // console.log(this.$store.getters.getUserKey)
-        })
-        .catch((error) => {
-          // this.$alert(error.response.statusText, '登出失败！')
-          this.$store.commit('resetState')
-          // location.reload()
-          this.$router.push('/login')
-          console.log(error.request)
-          this.$alert(error.response.data)
-        })
+      // Axios({
+      //   url: '/api/v1/rest-auth/logout/',
+      //   method: 'post',
+      //   headers: {
+      //     Authorization: 'Token ' + this.$store.getters.getUserKey
+      //   }
+      // })
+      //   .then(() => {
+      //     this.$store.commit('resetState')
+      //     this.$router.push('/login')
+      //     location.reload()
+      //     // console.log(this.$store.getters.getUserKey)
+      //   })
+      //   .catch((error) => {
+      //     // this.$alert(error.response.statusText, '登出失败！')
+      //     this.$store.commit('resetState')
+      //     // location.reload()
+      //     this.$router.push('/login')
+      //     console.log(error.request)
+      //     this.$alert(error.response.data)
+      //   })
     },
     search () {
       console.log('search')
@@ -161,9 +168,8 @@ export default {
     }
   },
   mounted () {
-    if (this.$store.getters.getUserKey !== 'null') {
+    if (this.$store.getters.getUserAccessToken !== 'null') {
       this.hasLogin = true
-      this.isAdmin = this.$store.getters.isAdmin
     }
   }
 }
