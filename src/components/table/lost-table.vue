@@ -546,6 +546,9 @@ export default {
     this.changePage(1)
   },
   methods: {
+    handleClose(item) {
+      this.create_lost_notice.property.tags.splice(this.create_lost_notice.property.tags.indexOf(item), 1);
+    },
     handleLocationDelete(item, id){
       this.create_lost_notice.lost_location.locations.splice(id,1)
     },

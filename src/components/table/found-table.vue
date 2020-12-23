@@ -533,6 +533,9 @@ export default {
     this.changePage(1)
   },
   methods: {
+    handleClose(item) {
+      this.create_found_notice.property.tags.splice(this.create_found_notice.property.tags.indexOf(item), 1);
+    },
     handleLocationDelete(){
       this.create_found_notice.found_location = {}
       this.has_location = false

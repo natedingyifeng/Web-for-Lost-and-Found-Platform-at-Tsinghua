@@ -466,7 +466,7 @@ export default {
         json[this.template_fields[i].name]=this.template_fields[i].details
       }
       this.property_template_list.fields = json
-      if(this.template_image_change == false)
+      if(true)
       {
         this.property_template_list.thumbnail = this.ruleForm.coverFile.raw
         axios.put('/property-templates/'+this.id+'/', this.property_template_list, {
