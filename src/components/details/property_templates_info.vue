@@ -104,7 +104,8 @@
               :on-exceed="handleExceed"
               list-type="picture-card"
               :file-list="template_images"
-              :on-change="saveImage">
+              :on-change="saveImage"
+              :disabled=notEdit>
               <i class="el-icon-plus"></i>
             </el-upload>
             <el-dialog :visible.sync="template_image_visible">
@@ -137,16 +138,17 @@
                   type="primary"
                   icon="el-icon-plus"
                   @click="handleFieldCreate(scope.$index, scope.row)"
-                  circle></el-button>
+                  circle
+                  :disabled=notEdit></el-button>
               </template>
               <template slot-scope="scope">
                 <el-button
                   size="mini"
-                  @click="handleFieldEdit(scope.$index, scope.row)">编辑</el-button>
+                  @click="handleFieldEdit(scope.$index, scope.row)" :disabled=notEdit>编辑</el-button>
                 <el-button
                   size="mini"
                   type="danger"
-                  @click="handleFieldDelete(scope.$index, scope.row)">删除</el-button>
+                  @click="handleFieldDelete(scope.$index, scope.row)" :disabled=notEdit>删除</el-button>
               </template>
             </el-table-column>
           </el-table>

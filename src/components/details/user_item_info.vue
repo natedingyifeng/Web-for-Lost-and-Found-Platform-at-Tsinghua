@@ -145,9 +145,7 @@
               </el-form-item>
             </el-col>
           </el-row>
-        </el-form-item>
-        
-        
+        </el-form-item>      
         <el-form-item label='状态'
                       class="label">
           <!-- <el-input v-model="data.status"
@@ -160,6 +158,28 @@
                        :value="item.value">
             </el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label='图片'
+                      class="label">
+          <div style="text-align: initial;margin-top: 20px;">
+            <el-upload
+              :class="{is_hidden:upload_show}"
+              action="none"
+              :on-preview="handleUserImagePreview"
+              :before-remove="handleUserImageRemoveConfirm"
+              :auto-upload="false"
+              :limit="1"
+              :on-exceed="handleExceed"
+              list-type="picture-card"
+              :file-list="user_images_urls"
+              :on-change="saveImage"
+              :disabled=notEdit>
+              <i class="el-icon-plus"></i>
+            </el-upload>
+            <el-dialog :visible.sync="user_image_visible">
+              <img width="100%" :src="user_image_url" alt="">
+            </el-dialog>
+          </div>
         </el-form-item>
         <el-row>
           <el-col :span="12">
@@ -190,7 +210,7 @@
   </div>
 </template>
 
-<style scoped>
+<style>
 .button {
   margin-top: 30px;
   left: 10%;
@@ -217,6 +237,9 @@
   margin: auto;
   margin-bottom: 20px;
 }
+.is_hidden .el-upload--picture-card{
+  display:none;
+}
 </style>
 
 <script>
@@ -224,20 +247,11 @@
 import axios from 'axios'
 import lostTable from '../table/lost-table'
 import foundTable from '../table/found-table'
-// import renterApplicationTable from '../table/renter-application-table'
-// import releaseApplicationTable from '../table/release-application-table'
-// import receivedRentApplicationTable from '../table/received-rent-application-table'
-// import rentedEquipmentTable from '../table/rented-equipment-table'
 import changeButton from '../button/change-button'
 import delButton from '../button/del-button'
 import chat from '../chat'
 export default {
   components: {
-    // 'equipment-table': equipmentTable,
-    // 'rent-application-table': rentApplicationTable,
-    // 'renter-application-table': renterApplicationTable,
-    // 'release-application-table': releaseApplicationTable,
-    // 'received-rent-application-table': receivedRentApplicationTable,
     'lost-table': lostTable,
     'found-table': foundTable,
     'change-button': changeButton,
@@ -256,6 +270,7 @@ export default {
       isAdmin: true,
       isOwner: true,
       user_data: [],
+      user_origin: [],
       foundList: [],
       lostList: [],
       data: [{
@@ -296,29 +311,34 @@ export default {
         CLS: "已关闭",
         DFT: "草稿中"
       },
-      notEdit: true
+      notEdit: true,
+      user_image_visible: false,
+      user_image_url: '',
+      user_images: [],
+      user_images_urls: [],
+      upload_show:false,
+      user_image_change: false,
     }
   },
   created: function () {
-    // if (this.id === -1) return
-    // axios.get('/api/v1/user/' + this.id, {
-    //   headers: {
-    //     Authorization: 'Token ' + this.$store.getters.getUserKey
-    //   }
-    // })
-    //   .then((response) => {
-    //     this.data = response.data
-    //   })
-    //   .catch((error) => {
-    //     this.$alert(error.response.data)
-    //   })
     axios.get('/users/'+this.id, {})
       .then((response) => {
           this.user_data = response.data
+          this.user_origin = response.data
           let joined_datetime = this.user_data.date_joined
-          // this.user_data.date_joined=this.extractTime(joined_datetime)
-          //console.log(this.property_template_list.results[id-1])
-          //console.log(this.found_notice)
+          if(this.user_data.wechat_avatar == null)
+          {
+            this.upload_show = false
+            this.user_images_urls = []
+            this.user_images = {}
+          }
+          else
+          {
+            this.upload_show = true
+            this.user_images_urls.push({url: this.user_data.wechat_avatar})
+            this.user_images = {url: this.user_data.wechat_avatar}
+          }
+          console.log(this.user_images_urls)
       })
       .catch((error) => {
         alert('error:' + error)
@@ -370,6 +390,105 @@ export default {
     this.changePage(1)
   },
   methods: {
+    handleUserImagePreview(file) {
+      this.user_image_url = file.url
+      this.user_image_visible = true
+    },
+    handleUserImageRemove(file) {
+      let index = -1
+      let data=new FormData();
+      let that=this
+      console.log(this.user_images_urls[0].url)
+      data.append('url', this.user_images_urls[0].url)
+      data.append('id', this.user_data.id)
+      console.log(data)
+      this.user_images = {}
+      this.user_images_urls = []
+      this.upload_show = false
+      this.imageUserDeleteUpdate()
+      // axios({
+      //   url: '/users/delete-avatar/',
+      //   method: 'post',
+      //   data: data
+      // })
+      //   .then((response) => {
+      //     this.user_images = {}
+      //     this.user_images_urls = []
+      //     this.upload_show = false
+      //     this.imageUserDeleteUpdate()
+      //   })
+      //   .catch((error) => {
+      //     alert('error:' + error)
+      //   });
+    },
+    imageUserDeleteUpdate(){
+      this.user_data.wechat_avatar = null
+      this.user_origin.wechat_avatar = null
+      axios.put('/users/'+this.id+'/', this.user_origin, {})
+        .then((response) => {
+          this.upload_show = false
+        })
+        .catch((error) => {
+          this.$alert(error.response.data)
+        })
+      this.$message({
+        type: 'success',
+        message: '删除成功!'
+      });
+    },
+    imageNoticeAddUpdate(){
+      this.user_data.wechat_avatar = this.user_images_urls[0].url
+      this.user_origin.images = this.user_images_urls[0].url
+      axios.put('/users/'+this.id+'/', this.user_origin, {})
+        .then((response) => {
+          this.upload_show = true
+        })
+        .catch((error) => {
+          this.$alert(error.response.data)
+        })
+      this.$message({
+        type: 'success',
+        message: '添加成功!'
+      });
+    },
+    handleUserImageRemoveConfirm(file) {
+      this.$confirm('此操作将删除该图片, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.handleUserImageRemove(file)
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+      return false
+    },
+    saveImage(file,fileList) {
+      this.user_images = file.raw
+      this.user_image_change = true
+      let data=new FormData();
+      data.append(file.name, file.raw)
+      data.append('id', this.user_data.id)
+      axios({
+        url: '/users/upload-avatar/',
+        method: 'post',
+        data: data
+      })
+        .then((response) => {
+          this.upload_show = true
+          this.user_images_urls = [{url:response.data.url[0]}]
+          this.imageNoticeAddUpdate()
+        })
+        .catch((error) => {
+          alert('error:' + error)
+        })
+    },
+    handleExceed(files, fileList) {
+      this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+    },
     DeleteUser() {
       axios.delete('/users/' + this.id + '/', {})
       .then((response) => {

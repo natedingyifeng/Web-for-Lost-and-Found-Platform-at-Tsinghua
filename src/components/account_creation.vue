@@ -67,7 +67,7 @@
                     style="width:30%;"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="CreateUser">立即创建</el-button>
+          <el-button type="primary" @click="CreateUser" style="margin-left: 21%;">立即创建</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -169,6 +169,10 @@ export default {
           data: this.user_data_invitation
         })
         .then((response) => {
+          this.$message({
+            type: 'success',
+            message: '创建成功!'
+          });
           location.reload()
         })
         .catch((error) => {
@@ -184,14 +188,11 @@ export default {
         data: this.email_invitation
       })
       .then((response) => {
-          // this.userList = response.data
-          // for(var i=0;i<this.userList.results.length;i++)
-          // {
-          //   let joined_datetime = this.userList.results[i].date_joined
-          //   this.userList.results[i].date_joined=this.extractTime(joined_datetime)
-          //   this.userList.results[i].status = this.Status[this.userList.results[i].status]
-          // }
-          // console.log(this.property_type_list.results)
+        this.$message({
+          type: 'success',
+          message: '发送成功!'
+        });
+        location.reload()
       })
       .catch((error) => {
         alert('error:' + error)

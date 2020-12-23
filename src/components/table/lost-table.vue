@@ -63,6 +63,53 @@
         </div>
       </div>
     </el-dialog>
+    <el-dialog class="location_select" title="选择地址" :visible.sync="location_select_dialogFormVisible">
+      <div v-for="(item, i) in location_search_results" :key="i" style="margin-bottom: 10px">
+        <el-radio v-model="location_search_result" :label="item" border>{{"名称："+item.title+" 地址："+item.address}}</el-radio>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="location_select_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="showSelectLocation">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
+    <el-dialog class="create_contact" title="修改地址" :visible.sync="edit_map_dialogFormVisible">
+      <el-form label-width="80px">
+        <el-form-item label="丢失地址">
+          <el-input autocomplete="off" v-model="location_name">
+            <el-button slot="append" icon="el-icon-search" @click="searchMap"></el-button>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="地图" label-width="53px">
+          <tecent-map id="edit_map" v-if="map_update" v-bind:latitude="location_latitude" v-bind:longitude="location_longitude" v-bind:zoom="location_zoom"></tecent-map>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="edit_map_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="editLostLocation">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
+    <el-dialog class="create_contact" title="创建地址" :visible.sync="create_map_dialogFormVisible">
+      <el-form label-width="80px">
+        <el-form-item label="丢失地址">
+          <el-input autocomplete="off" v-model="location_name">
+            <el-button slot="append" icon="el-icon-search" @click="searchMap"></el-button>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="地图" label-width="53px">
+          <tecent-map id="create_map" v-if="map_update" v-bind:latitude="location_latitude" v-bind:longitude="location_longitude" v-bind:zoom="location_zoom"></tecent-map>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div class="foot">
+          <el-button @click="create_map_dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="createLostLocation">确 定</el-button>
+        </div>
+      </div>
+    </el-dialog>
     <el-dialog class="new_notice" title="新建寻物启事" :visible.sync="notice_dialogFormVisible">
       <el-divider>物品信息</el-divider>
       <el-form label-width="100px">
@@ -111,16 +158,34 @@
           <el-button v-else class="button-new-tag" size="small" @click="showInput">+ New Tag</el-button>
         </el-form-item>
         <el-divider>启事信息</el-divider>
-        <el-form-item label='拾取时间'>
+        <el-form-item label='最早拾取时间'>
           <el-date-picker
-            v-model="create_lost_notice.lost_datetime"
+            v-model="create_lost_notice.est_lost_start_datetime"
+            type="datetime"
+            format="yyyy-MM-dd HH:mm"
+            value-format="yyyy-MM-dd HH:mm">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label='最晚拾取时间'>
+          <el-date-picker
+            v-model="create_lost_notice.est_lost_end_datetime"
             type="datetime"
             format="yyyy-MM-dd HH:mm"
             value-format="yyyy-MM-dd HH:mm">
           </el-date-picker>
         </el-form-item>
         <el-form-item label="拾取地点">
-          <el-input autocomplete="off" v-model="create_notice_location"></el-input>
+          <div v-for="(item, i) in create_lost_notice.lost_location.locations" :key="i">
+            <el-link target="_blank" :underline="false" :disabled=notEdit @click="editLostLocationTriger(i)" >{{item.name}}<i class="el-icon-map-location el-icon--right"></i></el-link>
+            <el-button
+              size="mini"
+              type="danger"
+              @click="handleLocationDelete(item, i)"
+              :disabled=notEdit
+              style="margin-left: 15px">删除</el-button>
+            <el-button v-if="i == create_lost_notice.lost_location.locations.length-1" class="button-new-tag" size="mini" @click="createLostLocationTriger(i)" :disabled=notEdit>+ New Location</el-button>
+          </div>
+          <el-button v-if="create_lost_notice.lost_location.locations.length==0" class="button-new-tag" size="mini" @click="createLostLocationTriger(-1)" :disabled=notEdit>+ New Location</el-button>
         </el-form-item>
         <el-form-item label='详情描述'
                       class="label">
@@ -133,8 +198,8 @@
             <el-upload
               :class="{is_hidden:upload_show}"
               action="none"
-              :on-preview="handleFoundImagePreview"
-              :on-remove="handleFoundImageRemove"
+              :on-preview="handleLostImagePreview"
+              :on-remove="handleLostImageRemove"
               :auto-upload="false"
               :limit="3"
               :on-exceed="handleExceed"
@@ -196,7 +261,7 @@
       <div slot="footer" class="dialog-footer">
         <div class="foot">
           <el-button @click="notice_dialogFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="CreateNewFoundNotice">确 定</el-button>
+          <el-button type="primary" @click="CreateNewLostNotice">确 定</el-button>
         </div>
       </div>
     </el-dialog>
@@ -296,9 +361,12 @@
 <script>
 import Axios from 'axios'
 import searchAndFilter from '../search&filter'
+import { jsonp } from 'vue-jsonp'
+import map from '../tecent_map'
 export default {
   components: {
-    'search-filter': searchAndFilter
+    'search-filter': searchAndFilter,
+    'tecent-map': map
   },
   props: {
     id: Number,
@@ -307,6 +375,10 @@ export default {
   },
   data: function () {
     return {
+      map_update: true,
+      edit_map_dialogFormVisible: false,
+      create_map_dialogFormVisible: false,
+      location_select_dialogFormVisible: false,
       notice_dialogFormVisible: false,
       fields_show: false,
       image_visible: false,
@@ -362,10 +434,7 @@ export default {
         description: '',
         lost_datetime: '',
         lost_location: {
-          address: '',
-          latitude: '',
-          longitude: '',
-          name: ''
+          locations: []
         },
         images: []
       },
@@ -408,7 +477,30 @@ export default {
       lost_notice_images_urls: [],
       upload_show:false,
       lost_notice_image_change: false,
-      create_lost_notice_image_url: []
+      create_lost_notice_image_url: [],
+      location_name: "",
+      location_search_results: [],
+      location_search_result: "",
+      location_latitude: 39.916527,
+      location_longitude: 116.397128,
+      location_zoom: 11,
+      latitude: 39.916527,
+      longitude: 116.397128,
+      zoom: 11,
+      edit_location_id: -1,
+      edit_location: {
+        name: "",
+        address: "",
+        latitude: 0,
+        longitude: 0
+      },
+      create_location_id: -1,
+      create_location: {
+        name: "",
+        address: "",
+        latitude: 0,
+        longitude: 0
+      }
     }
   },
   created: function () {
@@ -443,6 +535,102 @@ export default {
     this.changePage(1)
   },
   methods: {
+    handleLocationDelete(item, id){
+      this.create_lost_notice.lost_location.locations.splice(id,1)
+    },
+    createLostLocationTriger(id){
+      this.create_map_dialogFormVisible=true
+      this.location_longitude = this.longitude
+      this.location_latitude = this.latitude
+      this.location_zoom = this.zoom
+      this.map_update = false
+      this.$nextTick(() => {
+        this.map_update = true
+      })
+      this.create_location_id = id
+    },
+    createLostLocation(){
+      this.create_location.name = this.location_search_result.title
+      this.create_location.address = this.location_search_result.address
+      this.create_location.latitude = this.location_latitude
+      this.create_location.longitude = this.location_longitude
+      if(this.create_location.name == "")
+      {
+        alert('error: 地址不应为空!')
+        return
+      }
+      let tem = JSON.parse(JSON.stringify(this.create_location))
+      this.create_lost_notice.lost_location.locations.push(tem)
+      this.create_location.name = ""
+      this.create_location.address = ""
+      this.create_location.latitude = 0
+      this.create_location.longitude = 0
+      this.create_map_dialogFormVisible=false
+    },
+    editLostLocationTriger(id){
+      this.edit_map_dialogFormVisible=true
+      this.location_longitude = this.lost_notice.lost_location.locations[id].longitude
+      this.location_latitude = this.lost_notice.lost_location.locations[id].latitude
+      this.location_zoom = 14
+      this.map_update = false
+      this.$nextTick(() => {
+        this.map_update = true
+      })
+      this.edit_location_id = id
+    },
+    editLostLocation(){
+      this.edit_location.name = this.location_search_result.title
+      this.edit_location.address = this.location_search_result.address
+      this.edit_location.latitude = this.location_latitude
+      this.edit_location.longitude = this.location_longitude
+      if(this.edit_location.name == "")
+      {
+        alert('error: 地址不应为空!')
+        return
+      }
+      let tem = JSON.parse(JSON.stringify(this.edit_location))
+      this.create_lost_notice.lost_location.locations[this.edit_location_id] = tem
+      this.edit_location.name = ""
+      this.edit_location.address = ""
+      this.edit_location.latitude = 0
+      this.edit_location.longitude = 0
+      console.log(tem)
+      this.edit_map_dialogFormVisible=false
+    },
+    showSelectLocation(){
+      this.location_longitude = this.location_search_result.location.lng
+      this.location_latitude = this.location_search_result.location.lat
+      this.location_zoom = 14
+      console.log(this.location_longitude,this.location_latitude)
+      this.location_select_dialogFormVisible = false
+      this.map_update = false
+      this.$nextTick(() => {
+        this.map_update = true
+      })
+    },
+    searchMap(){
+      const KEY = "ZYMBZ-3EYKD-QCK4A-PN4DY-25NT6-72BK5";
+      let url = "https://apis.map.qq.com/ws/place/v1/search"
+      let keyword = this.location_name
+      jsonp(url, {
+          key: KEY,
+          boundary: "region(北京,0)",
+          keyword: keyword,
+          output: "jsonp"
+      }).then(res => {
+        this.location_search_results = res.data
+        if(this.location_search_results.length > 0)
+        {
+          this.location_select_dialogFormVisible = true
+        }
+        else
+        {
+          alert('error: 没有找到对应的地址!')
+        }
+      }).catch(err => {
+        console.log(err)
+      })
+    },
     checkPhoneValidation(phone){
       if(phone != '')
       {
@@ -539,13 +727,7 @@ export default {
       this.create_lost_notice.property.attributes = JSON.parse(JSON.stringify(new_template_fields))
       console.log(this.create_template_fields)
     },
-    CreateNewFoundNotice() {
-      this.create_lost_notice.lost_location = {
-        address: this.create_notice_location,
-        latitude: 39.90374,
-        longitude: 116.397827,
-        name: this.create_notice_location
-      }
+    CreateNewLostNotice() {
       this.create_lost_notice.images = JSON.parse(JSON.stringify(this.create_lost_notice_image_url))
       console.log(this.create_lost_notice)
       Axios({
@@ -574,11 +756,11 @@ export default {
         this.$refs.saveTagInput.$refs.input.focus();
       });
     },
-    handleFoundImagePreview(file) {
+    handleLostImagePreview(file) {
       this.lost_notice_image_url = file.url
       this.lost_notice_image_visible = true
     },
-    handleFoundImageRemove(file) {
+    handleLostImageRemove(file) {
       console.log(this.create_lost_notice_image_url.length)
       console.log(this.create_lost_notice_image_url[0])
       let is_removed = false

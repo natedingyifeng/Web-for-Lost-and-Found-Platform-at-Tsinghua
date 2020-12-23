@@ -1,14 +1,14 @@
 <template>
   <div>
-    <data-analysis></data-analysis>
+    <tecent-map></tecent-map>
   </div>
 </template>
 
 <script>
-import dataAnalysis from '../components/data-analysis.vue'
+import tecentMap from '../components/tecent_map.vue'
 export default {
   components: {
-    'data-analysis': dataAnalysis
+    'tecent-map': tecentMap
   },
   data: function () {
     return {

@@ -16,7 +16,8 @@ export default {
     }
   },
   created () {
-    if (this.$store.getters.getUserKey === 'null') {
+    if(this.$store.getters.getUserLoginStatus != "true")
+    {
       this.$router.push('/login')
     }
   }

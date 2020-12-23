@@ -100,6 +100,8 @@ export default {
           if(response.data.is_staff == true)
           {
             this.$store.commit('setUserLoginStatus', true)
+            this.$store.commit('setUserId', response.data.id)
+            this.$store.commit('setUserAvatar', response.data.wechat_avatar)
             location.reload()
           }
           else

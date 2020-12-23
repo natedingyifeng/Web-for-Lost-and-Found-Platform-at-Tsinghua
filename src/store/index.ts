@@ -9,6 +9,8 @@ export default new Vuex.Store({
     // userEmail: null, // 用户email
     userAccessToken: null, // 用户key
     userRefreshToken: null, // 用户key
+    userId: -1,
+    userAvatar: null,
     navIndex: 0,
     hasLogin: false,
     user: {
@@ -29,6 +31,14 @@ export default new Vuex.Store({
       state.hasLogin = status
       localStorage.hasLogin = status
     },
+    setUserId (state, id) {
+      state.userId = id
+      localStorage.userId = id
+    },
+    setUserAvatar (state, url) {
+      state.userAvatar = url
+      localStorage.userAvatar = url
+    },
     setNavIndex (state, index){
       state.navIndex = index
       localStorage.navIndex = index
@@ -42,7 +52,9 @@ export default new Vuex.Store({
     resetState (state) {
       state.userAccessToken = null // 用户key
       state.userRefreshToken = null // 用户key
+      state.userAvatar = null
       state.navIndex = 0
+      state.userId = -1
       state.hasLogin = false
       state.user = {}
       localStorage.user = JSON.stringify({})
@@ -50,6 +62,8 @@ export default new Vuex.Store({
       localStorage.userRefreshToken = null // 用户key
       localStorage.navIndex = 0
       localStorage.hasLogin = false
+      localStorage.userId = -1
+      localStorage.userAvatar = null
     }
   },
   actions: {
@@ -58,6 +72,18 @@ export default new Vuex.Store({
 
   },
   getters: {
+    getUserId (state) {
+      if (localStorage.userId) {
+        state.userId = localStorage.userId
+      }
+      return state.userId
+    },
+    getUserAvatar (state) {
+      if (localStorage.userAvatar) {
+        state.userAvatar = localStorage.userAvatar
+      }
+      return state.userAvatar
+    },
     getUserAccessToken (state) {
       if (localStorage.userAccessToken) {
         state.userAccessToken = localStorage.userAccessToken

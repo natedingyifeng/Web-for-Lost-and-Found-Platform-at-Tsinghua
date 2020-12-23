@@ -178,12 +178,17 @@ const routes: Array<RouteConfig> = [
     component: () => import('../views/analysis.vue')
   },
   {
+    path: '/map',
+    name: 'map',
+    component: () => import('../views/map.vue')
+  },
+  {
     path: '/create-accounts',
     name: 'create-accounts',
     component: () => import('../views/account.vue')
   },
   {
-    path: '/create-accounts-invitation',
+    path: '/create-accounts-invitation/:token',
     name: 'create-accounts-invitation',
     component: () => import('../views/account_invitation.vue')
   },
@@ -191,6 +196,11 @@ const routes: Array<RouteConfig> = [
     path: '/login',
     name: 'login',
     component: () => import('../views/login.vue')
+  },
+  {
+    path: '/matching-entries',
+    name: 'matching-entries',
+    component: () => import('../views/matching_entries_list.vue')
   },
 ]
 

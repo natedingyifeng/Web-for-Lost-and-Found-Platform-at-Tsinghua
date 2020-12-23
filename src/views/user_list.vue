@@ -26,10 +26,10 @@ export default {
   methods: {
   },
   created () {
-    if (this.$store.getters.getUserKey === 'null') {
+    if(this.$store.getters.getUserLoginStatus != "true")
+    {
       this.$router.push('/login')
     }
-    // location.reload()
   }
 }
 </script>

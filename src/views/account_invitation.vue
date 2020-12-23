@@ -1,6 +1,8 @@
 <template>
   <div>
-    <account-create-invitation></account-create-invitation>
+    <account-create-invitation :token="token"
+                               class="info"
+                               :height=700></account-create-invitation>
   </div>
 </template>
 
@@ -12,12 +14,14 @@ export default {
   },
   data: function () {
     return {
-
+      token: this.$route.params.token
     }
   },
   created () {
-    if (this.$store.getters.getUserKey === 'null') {
-      this.$router.push('/login')
+    if(this.$store.getters.getUserLoginStatus == "true")
+    {
+      this.$store.commit('resetState')
+      location.reload()
     }
   }
 }

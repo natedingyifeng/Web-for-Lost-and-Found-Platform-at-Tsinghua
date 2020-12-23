@@ -32,15 +32,18 @@
                   v-if="hasLogin == true">物品列表</el-menu-item>
       <el-menu-item index="10"
                     v-if="hasLogin == true">创建账号</el-menu-item>
+      <el-menu-item index="11"
+                    v-if="hasLogin == true">启事匹配</el-menu-item>
       <el-menu-item index="3"
                     v-if="hasLogin == true">平台信息</el-menu-item>
       <el-submenu index="4"
                   style="float:right;margin-right:100px;"
-                  v-if="hasLogin">
+                  v-if="hasLogin == true">
         <template slot="title">
           <div>
-            <img src="../assets/user.png"
-                 style="background-color:white;width: 40px;height: 40px;border-radius: 50%;float: left;margin-top: 10px;" />
+            <img  v-if="this.$store.getters.getUserAvatar"
+                  :src="this.$store.getters.getUserAvatar"
+                  style="background-color:white;width: 40px;height: 40px;border-radius: 50%;float: left;margin-top: 10px;" />
           </div>
         </template>
         <el-menu-item index="4-3"
@@ -70,14 +73,19 @@ export default {
       hasLogin: this.$store.getters.getUserAccessToken,
       activeIndex: '0',
       inputSearch: '',
-      select: '1'
+      select: '1',
+      avatar_update: true
     }
   },
   created: function(){
-    if(this.$store.getters.getUserLoginStatus != "true")
-    {
-      this.$router.push('/login')
-    }
+    // if(this.$store.getters.getUserLoginStatus != "true")
+    // {
+    //   this.$router.push('/login')
+    // }
+    this.avatar_update = false
+    this.$nextTick(() => {
+      this.avatar_update = true
+    })
   },
   methods: {
     handleSelect (key) {
@@ -127,6 +135,11 @@ export default {
         case '10': {
           this.activeIndex = '10'
           this.$router.push('/create-accounts')
+          break
+        }
+        case '11': {
+          this.activeIndex = '11'
+          this.$router.push('/matching-entries')
           break
         }
       }

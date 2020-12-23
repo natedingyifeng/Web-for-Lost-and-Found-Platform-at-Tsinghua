@@ -1,9 +1,9 @@
 <template>
   <div>
-    <report-table :id="-1"
+    <matching-entries-table :id="-1"
                   class="table"
                   :height=700
-                  :pageSize="10"></report-table>
+                  :pageSize="10"></matching-entries-table>
   </div>
 </template>
 
@@ -18,11 +18,11 @@
 </style>
 
 <script>
-import reportTable from '../components/table/report-table'
+import matchingEntriesTable from '../components/table/matching-entries-table'
 
 export default {
   components: {
-    'report-table': reportTable
+    'matching-entries-table': matchingEntriesTable
   },
   methods: {
   },

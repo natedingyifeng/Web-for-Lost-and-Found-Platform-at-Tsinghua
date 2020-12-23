@@ -6,8 +6,8 @@
         创建账户
       </h2>
       <el-form class="form"
-               label-width="136px"
-               align>
+              label-width="140px"
+              style="margin-top: 30px;margin-left: 30%;width: 1000px">
         <el-form-item label='名(First Name)' class="form-item-require-lable">
           <el-input v-model="user_data_invitation.first_name"
                     style="width:30%;"></el-input>
@@ -25,7 +25,7 @@
                     style="width:30%;"
                     show-password></el-input>
         </el-form-item>
-        <el-form-item>
+        <el-form-item style="margin-top: 30px;margin-left: 16.2%;">
           <el-button type="primary" @click="CreateUser">立即创建</el-button>
         </el-form-item>
       </el-form>
@@ -63,6 +63,9 @@
 
 import Axios from 'axios'
 export default {
+  props: {
+    token: String
+  },
   data: function () {
     return {
       user_data_invitation: {
@@ -70,48 +73,28 @@ export default {
         password: "",
         first_name: "",
         last_name: "",
-      }
+      },
+      user_data: {}
     }
   },
   created: function () {
-
+    console.log(this.token)
   },
   methods: {
     CreateUser()
     {
       Axios({
-        url: '/users/',
+        url: '/user-invitations/register/'+this.token+'/',
         method: 'post',
         data: this.user_data_invitation
       })
       .then((response) => {
-        location.reload()
+        this.$router.push('/login')
       })
       .catch((error) => {
         alert('error:' + error)
       })
     },
-    sendEmailInvitation()
-    {
-      Axios({
-        url: '/user-invitations/',
-        method: 'post',
-        data: this.email_invitation
-      })
-      .then((response) => {
-          // this.userList = response.data
-          // for(var i=0;i<this.userList.results.length;i++)
-          // {
-          //   let joined_datetime = this.userList.results[i].date_joined
-          //   this.userList.results[i].date_joined=this.extractTime(joined_datetime)
-          //   this.userList.results[i].status = this.Status[this.userList.results[i].status]
-          // }
-          // console.log(this.property_type_list.results)
-      })
-      .catch((error) => {
-        alert('error:' + error)
-      })
-    }
   }
 }
 </script>
