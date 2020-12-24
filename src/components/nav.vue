@@ -11,7 +11,7 @@
              active-text-color="#ffd04b">
       <div class="logo"
            aria-disabled="true">
-        <a href="/login">
+        <a @click="gotoLogin('/login')">
           <h3 style="float:left;color:white;margin-left:100px;">
             紫荆寻物THU
           </h3>
@@ -146,8 +146,12 @@ export default {
         }
       }
     },
-    goRouter (path) {
-      this.$router.go(path)
+    gotoLogin (path) {
+      this.$store.commit('resetState')
+      if(this.$store.getters.getUserLoginStatus == "false")
+      {
+        this.$router.go(path)
+      }
     },
     checkMe() {
       this.$router.push({ name: 'user', params: { userId: this.$store.getters.getUserId } })

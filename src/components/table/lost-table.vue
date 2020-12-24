@@ -535,7 +535,11 @@ export default {
       .catch((error) => {
         alert('error:' + error)
       })
-    Axios.get('/property-templates', {})
+    Axios.get('/property-templates', {
+      params: {
+        page: 2
+      }
+    })
       .then((response) => {
           this.property_template_list = response.data
           console.log(this.property_template_list.results)
@@ -736,6 +740,10 @@ export default {
     },
     handleShow(template) {
       let new_template_fields = template.fields;
+      for(let i=0;i<new_template_fields.length;i++)
+      {
+        new_template_fields[i] = ''
+      }
       this.$set(this, 'create_template_fields', new_template_fields)
       this.$set(this, 'fields_show', true)
       this.create_lost_notice.property.attributes = JSON.parse(JSON.stringify(new_template_fields))

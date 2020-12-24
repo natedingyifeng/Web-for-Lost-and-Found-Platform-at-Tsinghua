@@ -5,13 +5,8 @@
 const path = require('path')
 
 module.exports = {
-  configureWebpack: {
-    devServer: {
-      headers: { "Access-Control-Allow-Origin": "*" }
-    }
-  },
+  publicPath: './', 
   dev: {
-
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',

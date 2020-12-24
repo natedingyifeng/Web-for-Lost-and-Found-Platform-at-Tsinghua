@@ -522,7 +522,11 @@ export default {
       .catch((error) => {
         alert('error:' + error)
       })
-    Axios.get('/property-templates', {})
+    Axios.get('/property-templates', {
+      params: {
+        page: 2
+      }
+    })
       .then((response) => {
           this.property_template_list = response.data
           console.log(this.property_template_list.results)

@@ -343,7 +343,7 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 .button {
   margin-top: 30px;
   left: 10%;
@@ -395,10 +395,6 @@
   padding-left: 150px;
   padding-right: 150px;
 }
-</style>
-
-<style scoped>
-
 </style>
 
 <script>

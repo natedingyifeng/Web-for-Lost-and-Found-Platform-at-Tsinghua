@@ -158,7 +158,7 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 .button {
   margin-top: 30px;
   left: 10%;
