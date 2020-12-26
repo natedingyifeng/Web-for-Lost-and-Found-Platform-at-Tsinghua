@@ -53,8 +53,6 @@
         <el-menu-item index="4-3"
                       @click="logout">退出登录</el-menu-item>
       </el-submenu>
-      <!-- <el-menu-item style="margin-right:100px;float:right;font-size:19px;"
-                    v-if="!hasLogin"><a href="/login">未登录</a></el-menu-item> -->
     </el-menu>
   </div>
 </template>
@@ -142,33 +140,14 @@ export default {
         }
       }
     },
-    gotoLogin (path) {
-      this.$store.commit('resetState')
-      if(this.$store.getters.getUserLoginStatus == "false")
-      {
-        this.$router.go(path)
-      }
-    },
     checkMe() {
       this.$router.push({ name: 'user', params: { userId: this.$store.getters.getUserId } })
     },
     logout () {
       this.$store.commit('setUserLogoutStatus', true)
       this.$store.commit('setUserLoginStatus', false)
-      // this.$store.commit('resetState')
-      // this.$router.push('/login')
-      // while(this.$store.getters.getUserLogoutStatus == "false")
-      // {
-      //   console.log(1)
-      // }
       this.$router.push('/login')
       this.hasLogin = false
-      // location.reload()
-    },
-    search () {
-      console.log('search')
-      console.log(this.select)
-      console.log(this.inputSearch)
     }
   },
   mounted () {

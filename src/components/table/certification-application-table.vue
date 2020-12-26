@@ -23,7 +23,7 @@
         </el-table-column>
         <el-table-column prop="status"
                          label="状态"
-                         width="150">
+                         width="220">
         </el-table-column> 
       </el-table>
       <el-pagination background
@@ -41,14 +41,17 @@
   margin: auto;
   margin-top: 20px;
   position: relative;
+  width: 1350px;
 }
 .table {
   position: relative;
   margin: 0 auto 40px auto;
+  width: 1350px;
 }
 .table-card{
   position: relative;
   margin: 0 auto 0 auto;
+  width: 1350px;
 }
 .page-chooser {
   position: relative;
