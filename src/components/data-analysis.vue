@@ -11,10 +11,10 @@
           用户状态
       </h3>
       <el-row>
-        <el-col span="12">
+        <el-col :span="12">
           <div id="UserStatusPie" class="pie-wrap"></div>
         </el-col>
-        <el-col span="12">
+        <el-col :span="12">
           <div style="margin-left:80px;margin-top:-10px;">
             <h4>
               平台用户总数: <el-tag type="warning"
@@ -45,10 +45,10 @@
           用户身份
       </h3>
       <el-row>
-        <el-col span="12">
+        <el-col :span="12">
           <div id="UserIdentityPie" class="pie-wrap"></div>
         </el-col>
-        <el-col span="12">
+        <el-col :span="12">
           <div style="margin-left:80px;margin-top:-10px;">
             <h4>
               认证用户数量: <el-tag type="success"
@@ -82,7 +82,7 @@
           启事状态
       </h3>
       <el-row>
-        <el-col span="12">
+        <el-col :span="12">
           <el-row>
             <div id="LostNoticeStatusPie" class="pie-wrap"></div>
           </el-row>
@@ -96,12 +96,12 @@
             <div style="margin-left:80px;">
               <h4>
                 寻物启事成功率: <el-tag type="success"
-                        style="float:right;margin-right:150px;font-size:20px;">{{(lost_notice_CLS/lost_notice_PUB)*100+'%'}}</el-tag>
+                        style="float:right;margin-right:150px;font-size:20px;">{{((lost_notice_CLS/lost_notice_PUB)*100).toFixed(2)+'%'}}</el-tag>
               </h4>
             </div>
           </el-row>
         </el-col>
-        <el-col span="12">
+        <el-col :span="12">
           <el-row>
             <div id="FoundNoticeStatusPie" class="pie-wrap"></div>
           </el-row>
@@ -115,7 +115,7 @@
             <div style="margin-left:80px;">
               <h4>
                 失物招领成功率: <el-tag type="danger"
-                        style="float:right;margin-right:150px;font-size:20px;">{{(found_notice_CLS/found_notice_PUB)*100+'%'}}</el-tag>
+                        style="float:right;margin-right:150px;font-size:20px;">{{((found_notice_CLS/found_notice_PUB)*100).toFixed(2)+'%'}}</el-tag>
               </h4>
             </div>
           </el-row>
@@ -334,7 +334,6 @@ export default {
         if(String(dateList[2]).length == 1){dateList[2] = "0"+dateList[2]};
         let tem = dateList[0]+"-"+dateList[1]+"-"+dateList[2]
         result.push(tem);
-        console.log(this.found_notice_timeline.length)
         for(let j=0;j<this.found_notice_timeline.length;j++)
         {
           if(tem == moment(this.found_notice_timeline[j].day).format("YYYY-MM-DD"))
@@ -348,7 +347,6 @@ export default {
         if(dateList[0] == endDay[0] && dateList[1] == endDay[1] && dateList[2] == endDay[2]){ i = 1;
         }
       };
-      console.log(result);
       return result;
     },
     getUserData(){
@@ -445,7 +443,6 @@ export default {
     },
     getNoticeTimeLine(){
       let me=this;
-      console.log(this.data_target)
       if(this.data_target == "失物招领")
       {
         let type = '';
@@ -462,7 +459,6 @@ export default {
           end_time: this.date_search[1],
           type: type
         }
-        console.log(data)
         Axios.get('/found-notices/stat-timeline/', {
           params: {
             start_time: this.date_search[0],
@@ -475,12 +471,9 @@ export default {
         })
         .then((response) => {
           me.found_notice_timeline = response.data
-          console.log(response.data)
           if(type == "month")
           {
             this.month_range = this.getBetweenMonthStr(moment(this.date_search[0]).format("YYYY-MM"), moment(this.date_search[1]).format("YYYY-MM"))
-            console.log(this.month_range)
-            console.log(this.month_range_count)
             this.drawDataTrendLine(this.month_range,this.month_range_count)
           }
           else if(type == "day")
@@ -512,7 +505,6 @@ export default {
           end_time: this.date_search[1],
           type: type
         }
-        console.log(data)
         Axios.get('/lost-notices/stat-timeline/', {
           params: {
             start_time: this.date_search[0],
@@ -525,12 +517,9 @@ export default {
         })
         .then((response) => {
           me.found_notice_timeline = response.data
-          console.log(response.data)
           if(type == "month")
           {
             this.month_range = this.getBetweenMonthStr(moment(this.date_search[0]).format("YYYY-MM"), moment(this.date_search[1]).format("YYYY-MM"))
-            console.log(this.month_range)
-            console.log(this.month_range_count)
             this.drawDataTrendLine(this.month_range,this.month_range_count)
           }
           else if(type == "day")
@@ -556,9 +545,7 @@ export default {
     },
     change(){
       this.getNoticeTimeLine()
-      console.log(this.date_search)
       let d = new Date(this.date_search[0])
-      console.log(d)
     },
     drawDataTrendLine(range,count) {
       this.dataTrendLine = echarts.init(document.getElementById('DataTrendLine'));
@@ -602,15 +589,6 @@ export default {
           symbolSize: 8
         }]
       });
-      // this.dataTrendLine.showLoading();
-      // Axios.get('/users/statistic', {})
-      //   .then((response) => {
-      //     this.dataTrendLine.hideLoading();
-      //     me.user_data = response.data
-      //   })
-      //   .catch((error) => {
-      //     alert('error:' + error)
-      //   })
     },
     drawUserStatusPie() {
       this.UserStatusPie = echarts.init(
@@ -619,7 +597,6 @@ export default {
       this.UserStatusPie.setOption({
         tooltip: {
           trigger: "item",
-          // formatter: "{a}<br/>{b}: <br/>{c}({d}%)",  其中 {a}指向name名称（访问来源）
           formatter: "{b}: <br/>{c}({d}%)",
         },
         legend: {
@@ -627,19 +604,13 @@ export default {
           left: 400,
           top: 60,
           orient: "vertical",
-          // 下面注释的代码是控制分类放在哪个地方,需要体验的话，直接把上面的代码注释，把下面的代码解开注释即可
-          //   data: ["直接访问", "邮件营销", "联盟广告", "视频广告", "搜索引擎"],
-          //   left: "center",
-          //   top: "bottom",
-          //   orient: "horizontal"
+          selectedMode:false
         },
         series: [
           {
             name: "用户状态",
             type: "pie",
-            //圆圈的粗细
             radius: ["60%", "100%"],
-            //圆圈的位置
             center: ["40%", "50%"],
             data: [
               {
@@ -655,19 +626,10 @@ export default {
                 name: "已封禁",
               }
             ],
-            //动画持续时间：2秒
             animationDuration: 2000,
-            //控制是否显示指向文字的,默认为true
             label: {
               show: false,
               position: "center",
-              //以下代码可以代表指向小文字的
-              //   show: true,
-              //   formatter: "{b} : {c} ({d}%)",
-              //   textStyle: {
-              //     color: "#333",
-              //     fontSize: 14,
-              //   },
             },
           },
         ],
@@ -680,7 +642,6 @@ export default {
       this.UserIdentityPie.setOption({
         tooltip: {
           trigger: "item",
-          // formatter: "{a}<br/>{b}: <br/>{c}({d}%)",  其中 {a}指向name名称（访问来源）
           formatter: "{b}: <br/>{c}({d}%)",
         },
         legend: {
@@ -688,19 +649,13 @@ export default {
           left: 400,
           top: 60,
           orient: "vertical",
-          // 下面注释的代码是控制分类放在哪个地方,需要体验的话，直接把上面的代码注释，把下面的代码解开注释即可
-          //   data: ["直接访问", "邮件营销", "联盟广告", "视频广告", "搜索引擎"],
-          //   left: "center",
-          //   top: "bottom",
-          //   orient: "horizontal"
+          selectedMode:false
         },
         series: [
           {
             name: "用户身份",
             type: "pie",
-            //圆圈的粗细
             radius: ["60%", "100%"],
-            //圆圈的位置
             center: ["40%", "50%"],
             data: [
               {
@@ -716,19 +671,10 @@ export default {
                 name: "其他用户",
               }
             ],
-            //动画持续时间：2秒
             animationDuration: 2000,
-            //控制是否显示指向文字的,默认为true
             label: {
               show: false,
               position: "center",
-              //以下代码可以代表指向小文字的
-              //   show: true,
-              //   formatter: "{b} : {c} ({d}%)",
-              //   textStyle: {
-              //     color: "#333",
-              //     fontSize: 14,
-              //   },
             },
           },
         ],
@@ -741,7 +687,6 @@ export default {
       this.UserIdentityPie.setOption({
         tooltip: {
           trigger: "item",
-          // formatter: "{a}<br/>{b}: <br/>{c}({d}%)",  其中 {a}指向name名称（访问来源）
           formatter: "{b}: <br/>{c}({d}%)",
         },
         legend: {
@@ -749,19 +694,13 @@ export default {
           left: 400,
           top: 60,
           orient: "vertical",
-          // 下面注释的代码是控制分类放在哪个地方,需要体验的话，直接把上面的代码注释，把下面的代码解开注释即可
-          //   data: ["直接访问", "邮件营销", "联盟广告", "视频广告", "搜索引擎"],
-          //   left: "center",
-          //   top: "bottom",
-          //   orient: "horizontal"
+          selectedMode:false
         },
         series: [
           {
             name: "寻物启事状态",
             type: "pie",
-            //圆圈的粗细
             radius: ["60%", "100%"],
-            //圆圈的位置
             center: ["40%", "50%"],
             data: [
               {
@@ -773,19 +712,10 @@ export default {
                 name: "尚未成功的寻物启事",
               }
             ],
-            //动画持续时间：2秒
             animationDuration: 2000,
-            //控制是否显示指向文字的,默认为true
             label: {
               show: false,
               position: "center",
-              //以下代码可以代表指向小文字的
-              //   show: true,
-              //   formatter: "{b} : {c} ({d}%)",
-              //   textStyle: {
-              //     color: "#333",
-              //     fontSize: 14,
-              //   },
             },
           },
         ],
@@ -798,7 +728,6 @@ export default {
       this.UserIdentityPie.setOption({
         tooltip: {
           trigger: "item",
-          // formatter: "{a}<br/>{b}: <br/>{c}({d}%)",  其中 {a}指向name名称（访问来源）
           formatter: "{b}: <br/>{c}({d}%)",
         },
         legend: {
@@ -806,19 +735,13 @@ export default {
           left: 400,
           top: 60,
           orient: "vertical",
-          // 下面注释的代码是控制分类放在哪个地方,需要体验的话，直接把上面的代码注释，把下面的代码解开注释即可
-          //   data: ["直接访问", "邮件营销", "联盟广告", "视频广告", "搜索引擎"],
-          //   left: "center",
-          //   top: "bottom",
-          //   orient: "horizontal"
+          selectedMode:false
         },
         series: [
           {
             name: "失物招领状态",
             type: "pie",
-            //圆圈的粗细
             radius: ["60%", "100%"],
-            //圆圈的位置
             center: ["40%", "50%"],
             data: [
               {
@@ -830,19 +753,10 @@ export default {
                 name: "尚未成功的失物招领",
               }
             ],
-            //动画持续时间：2秒
             animationDuration: 2000,
-            //控制是否显示指向文字的,默认为true
             label: {
               show: false,
               position: "center",
-              //以下代码可以代表指向小文字的
-              //   show: true,
-              //   formatter: "{b} : {c} ({d}%)",
-              //   textStyle: {
-              //     color: "#333",
-              //     fontSize: 14,
-              //   },
             },
           },
         ],

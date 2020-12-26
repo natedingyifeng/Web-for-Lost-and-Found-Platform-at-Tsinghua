@@ -86,10 +86,7 @@ export default {
       Axios({
         url: '/user-invitations/register/'+this.token+'/',
         method: 'post',
-        data: this.user_data_invitation,
-        headers: {
-          Authorization: 'Bearer ' + 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjA4NzY4MTE2LCJqdGkiOiJjMTc1NDBjYmQ0OTA0Yzc3OTEyMjFkNzM1YjhiYzczNyIsInVzZXJfaWQiOjF9.mMMrjOhGFWS-NTTIOpImpcwHR-HMNCQMEmqsp4xrOhY'
-        }
+        data: this.user_data_invitation
       })
       .then((response) => {
         this.$router.push('/login')

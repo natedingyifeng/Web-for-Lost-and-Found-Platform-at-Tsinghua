@@ -342,7 +342,7 @@
           </el-table>
         </el-form-item>
         <el-divider>匹配启事</el-divider>
-        <el-timeline :reverse="reverse" width="60%">
+        <el-timeline width="60%">
           <el-timeline-item
             v-for="(activity, index) in lost_notice.matching_entries"
             :key="index"
@@ -408,7 +408,7 @@
 .is_hidden .el-upload--picture-card{
   display:none;
 }
-.el-timeline {
+/deep/.el-timeline {
   padding-left: 150px;
   padding-right: 150px;
 }
@@ -542,9 +542,7 @@ export default {
     }
   },
   watch: {
-    //监听模态框是否显示,显示就执行初始化地图方法
     modelMsg(newVal, oldVal) {
-      console.log(newVal)
       if (newVal == true) {
         this.initMap(23.12908, 113.26436)
       }
@@ -584,24 +582,42 @@ export default {
             this.lost_notice_images_urls.push({url: this.lost_notice.images[i].url})
             this.lost_notice_images.push({url: this.lost_notice.images[i].url})
           }
-          console.log(this.lost_notice)
       })
       .catch((error) => {
         alert('error:' + error)
       })
-    axios.get('/property-templates', {
-      // headers: {
-      //   Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
-      // }
+    let page_num = 0
+    axios.get('/property-templates/', {
+      params: {
+        page: 1
+      }
     })
       .then((response) => {
           this.lost_notice_item_options = response.data.results
+          page_num = Math.ceil(response.data.count/10)
+          this.getFullTemplateList(page_num)
       })
       .catch((error) => {
         alert('error:' + error)
       })
   },
   methods: {
+    getFullTemplateList(page_num) {
+      for(let i=2;i<=page_num;i++)
+      {
+        axios.get('/property-templates/', {
+          params: {
+            page: i
+          }
+        })
+          .then((response) => {
+              this.lost_notice_item_options = this.lost_notice_item_options.concat(response.data.results)
+          })
+          .catch((error) => {
+            alert('error:' + error)
+          })
+      }
+    },
     handleLocationDelete(item, id){
       this.lost_notice.lost_location.locations.splice(id,1)
     },
@@ -661,14 +677,12 @@ export default {
       this.edit_location.address = ""
       this.edit_location.latitude = 0
       this.edit_location.longitude = 0
-      console.log(tem)
       this.edit_map_dialogFormVisible=false
     },
     showSelectLocation(){
       this.location_longitude = this.location_search_result.location.lng
       this.location_latitude = this.location_search_result.location.lat
       this.location_zoom = 14
-      console.log(this.location_longitude,this.location_latitude)
       this.location_select_dialogFormVisible = false
       this.map_update = false
       this.$nextTick(() => {
@@ -837,14 +851,9 @@ export default {
           index = i
         }
       }
-      console.log(this.lost_notice_images)
-      console.log(this.lost_notice.images)
-      console.log(this.lost_notice_origin.images)
-      console.log(this.lost_notice_images_urls)
       let data=new FormData();
       let that=this
       data.append('url', this.lost_notice_images_urls[index].url)
-      console.log(data)
       axios({
         url: '/lost-notices/delete-image/',
         method: 'post',
@@ -875,10 +884,6 @@ export default {
         }
       })
         .then((response) => {
-          console.log(this.lost_notice_images)
-          console.log(this.lost_notice.images)
-          console.log(this.lost_notice_origin.images)
-          console.log(this.lost_notice_images_urls)
           if(this.lost_notice.images.length < 3)
           {
             this.upload_show = false

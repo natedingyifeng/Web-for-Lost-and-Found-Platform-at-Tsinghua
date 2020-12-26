@@ -130,33 +130,20 @@
 import axios from 'axios'
 import lostTable from '../table/lost-table'
 import foundTable from '../table/found-table'
-// import renterApplicationTable from '../table/renter-application-table'
-// import releaseApplicationTable from '../table/release-application-table'
-// import receivedRentApplicationTable from '../table/received-rent-application-table'
-// import rentedEquipmentTable from '../table/rented-equipment-table'
 import changeButton from '../button/change-button'
 import delButton from '../button/del-button'
-import chat from '../chat'
 export default {
   components: {
-    // 'equipment-table': equipmentTable,
-    // 'rent-application-table': rentApplicationTable,
-    // 'renter-application-table': renterApplicationTable,
-    // 'release-application-table': releaseApplicationTable,
-    // 'received-rent-application-table': receivedRentApplicationTable,
     'lost-table': lostTable,
     'found-table': foundTable,
     'change-button': changeButton,
     'del-button': delButton,
-    'chat-dialog': chat
   },
   props: {
     id: Number
   },
   data: function () {
     return {
-      // isOwner: (this.id === this.$store.getters.getCurrentUser.id),
-      // isAdmin: this.$store.getters.isAdmin,
       isAdmin: true,
       isOwner: true,
       dialogVisible: false,
@@ -295,57 +282,10 @@ export default {
       return result;
     },
     change: function () {
-      // const newData = {}
-      // for (const key in this.data) {
-      //   if (this.data[key] !== '') {
-      //     newData[key] = this.data[key]
-      //   }
-      // }
-
-      // Axios.patch('/api/v1/' + this.target + '/' + this.id + '/', newData, {
-      //   headers: {
-      //     Authorization: 'Token ' + this.$store.getters.getUserKey
-      //   }
-      // })
-      //   .then((response) => {
-      //     location.reload()
-      //     this.$message('修改成功')
-      //     // this.$router.push({ name: 'admin' })
-      //   })
-      //   .catch((error) => {
-      //     console.log(error.response)
-      //     console.log(error.request.response)
-      //     this.$alert(error.response.data)
-      //   })
       this.notEdit=false
     },
     confirm: function () {
-      // const newData = {}
-      // for (const key in this.data) {
-      //   if (this.data[key] !== '') {
-      //     newData[key] = this.data[key]
-      //   }
-      // }
-
-      // Axios.patch('/api/v1/' + this.target + '/' + this.id + '/', newData, {
-      //   headers: {
-      //     Authorization: 'Token ' + this.$store.getters.getUserKey
-      //   }
-      // })
-      //   .then((response) => {
-      //     location.reload()
-      //     this.$message('修改成功')
-      //     // this.$router.push({ name: 'admin' })
-      //   })
-      //   .catch((error) => {
-      //     console.log(error.response)
-      //     console.log(error.request.response)
-      //     this.$alert(error.response.data)
-      //   })
       this.notEdit=true
-    },
-    enterEquipment: function (row) {
-      this.$router.push({ name: 'user', params: { userId: row.id } })
     },
     openDialog: function () {
       this.dialogVisible = false

@@ -13,6 +13,8 @@ export default new Vuex.Store({
     userAvatar: null,
     navIndex: 0,
     hasLogin: false,
+    trytoLogout: false,
+    isAdmin: false,
     user: {
     }
     // hasLogin: false, // 登录状态
@@ -31,9 +33,17 @@ export default new Vuex.Store({
       state.hasLogin = status
       localStorage.hasLogin = status
     },
+    setUserLogoutStatus (state, status) {
+      state.trytoLogout = status
+      localStorage.trytoLogout = status
+    },
     setUserId (state, id) {
       state.userId = id
       localStorage.userId = id
+    },
+    setUserIsAdmin (state, isAdmin) {
+      state.isAdmin = isAdmin
+      localStorage.isAdmin = isAdmin
     },
     setUserAvatar (state, url) {
       state.userAvatar = url
@@ -56,14 +66,18 @@ export default new Vuex.Store({
       state.navIndex = 0
       state.userId = -1
       state.hasLogin = false
+      state.trytoLogout = false
+      state.isAdmin = false
       state.user = {}
       localStorage.user = JSON.stringify({})
       localStorage.userAccessToken = null // 用户key
       localStorage.userRefreshToken = null // 用户key
       localStorage.navIndex = 0
       localStorage.hasLogin = false
+      localStorage.trytoLogout = false
       localStorage.userId = -1
       localStorage.userAvatar = null
+      localStorage.isAdmin = false
     }
   },
   actions: {
@@ -77,6 +91,12 @@ export default new Vuex.Store({
         state.userId = localStorage.userId
       }
       return state.userId
+    },
+    getUserIsAdmin (state) {
+      if (localStorage.isAdmin) {
+        state.isAdmin = localStorage.isAdmin
+      }
+      return state.isAdmin
     },
     getUserAvatar (state) {
       if (localStorage.userAvatar) {
@@ -101,6 +121,12 @@ export default new Vuex.Store({
         state.hasLogin = localStorage.hasLogin
       }
       return state.hasLogin
+    },
+    getUserLogoutStatus (state) {
+      if (localStorage.trytoLogout) {
+        state.trytoLogout = localStorage.trytoLogout
+      }
+      return state.trytoLogout
     },
     getNavIndex (state) {
       if (localStorage.navIndex) {

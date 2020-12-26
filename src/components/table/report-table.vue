@@ -116,8 +116,7 @@ export default {
         OTH: "其他"
       },
       reports_notice: [],
-      reports_sum: 0,
-      pageSize: 10
+      reports_sum: 0
     }
   },
   created: function () {
@@ -158,11 +157,12 @@ export default {
       {
         order_prop=column.prop
       }
-      Axios.get('/reports', {
+      Axios.get('/reports/', {
         params: {
-          ordering: order_prop,
-          offset: 0,
-          limit: this.pageSize
+          ordering: order_prop
+        },
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
         }
       })
         .then((response) => {
@@ -174,8 +174,6 @@ export default {
             this.reports[i].type = this.Types[this.reports[i].type]
           }
         }).catch((error) => {
-          // alert('error:' + error)
-          console.log(error)
           this.$alert(error.response.data)
         })
     },
@@ -188,7 +186,7 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
-      Axios.get('/reports', {
+      Axios.get('/reports/', {
         params: {
           page: page
         },
@@ -205,8 +203,7 @@ export default {
             this.reports[i].type = this.Types[this.reports[i].type]
           }
         }).catch((error) => {
-          // alert('error:' + error)
-          console.log(error)
+          alert('error:' + error)
         })
     },
     extractTime(time){

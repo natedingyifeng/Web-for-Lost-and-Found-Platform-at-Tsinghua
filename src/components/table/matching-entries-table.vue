@@ -7,7 +7,8 @@
                     target="rent-application"
                     class="change"
                     @click="parameter_dialogFormVisible = true"
-                    type="primary">修改匹配参数</el-button>
+                    type="primary"
+                    :disabled="!(this.$store.getters.getUserIsAdmin=='true')">修改匹配参数</el-button>
       </div>
     </el-card>
     <el-dialog class="edit_parameter" title="修改匹配参数" :visible.sync="parameter_dialogFormVisible" width="40%">
@@ -57,7 +58,6 @@
                 stripe
                 id="users-table"
                 class="table"
-                @row-click="enter"
                 @sort-change='sortChange'>
         <el-table-column prop="id"
                          label="ID"
@@ -110,7 +110,7 @@
       </el-table>
       <el-pagination background
                      layout="prev, pager, next"
-                     :total="1"
+                     :total="page_sum"
                      class="page-chooser"
                      @current-change="changePage">
       </el-pagination>
@@ -191,17 +191,23 @@ export default {
         CPY: "侵权行为",
         OTH: "其他"
       },
-      reports_notice: []
+      reports_notice: [],
+      page_sum: 0
     }
   },
   created: function () {
     Axios.get('/matching-entries/', {
+      params: {
+        offset: 0,
+        limit: 10
+      },
       headers: {
         Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
       }
     })
     .then((response) => {
       this.matching_entries = response.data.results
+      this.page_sum = response.data.count
       for(let i=0;i<this.matching_entries.length;i++)
       {
         if(this.matching_entries[i].notified == false)
@@ -212,22 +218,26 @@ export default {
         {
           this.matching_entries[i].notified = "已通知"
         }
+        this.matching_entries[i].matching_degree = this.matching_entries[i].matching_degree.toFixed(4)
       }
     })
     .catch((error) => {
       alert('error:' + error)
     })
-    Axios.get('/matching-hyperparameters/get-hyper/', {
-      headers: {
-        Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
-      }
-    })
-    .then((response) => {
-      this.edit_parameter = response.data
-    })
-    .catch((error) => {
-      alert('error:' + error)
-    })
+    if(this.$store.getters.getUserIsAdmin == "true")
+    {
+      Axios.get('/matching-hyperparameters/get-hyper/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
+      .then((response) => {
+        this.edit_parameter = response.data
+      })
+      .catch((error) => {
+        alert('error:' + error)
+      })
+    }
   },
   methods: {
     editMatchingParameters() {
@@ -277,11 +287,11 @@ export default {
       {
         order_prop=column.prop
       }
-      Axios.get('/matching-entries', {
+      Axios.get('/matching-entries/', {
         params: {
           ordering: order_prop,
           offset: 0,
-          limit: this.pageSize
+          limit: 10
         },
         headers: {
           Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
@@ -301,13 +311,8 @@ export default {
             }
           }
         }).catch((error) => {
-          // alert('error:' + error)
-          console.log(error)
           this.$alert(error.response.data)
         })
-    },
-    enter: function (row) {
-      // this.$router.push({ name: 'report', params: { reportId: row.id } })
     },
     searchAndFilter: function (select, input) {
       this.select = select
@@ -315,27 +320,31 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
-      Axios.get('/reports', {
+      Axios.get('/matching-entries/', {
         params: {
           [this.select]: this.input,
-          offset: (page - 1) * this.pageSize,
-          limit: this.pageSize
+          offset: (page - 1) * 10,
+          limit: 10
         },
         headers: {
           Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
         }
       })
         .then((response) => {
-          this.reports = response.data.results
-          for(var i=0;i<this.reports.length;i++)
+          this.matching_entries = response.data.results
+          this.page_sum = response.data.count
+          for(let i=0;i<this.matching_entries.length;i++)
           {
-            this.reports[i].created_at = this.extractTime(this.reports[i].created_at)
-            this.reports[i].verdict_type = this.Status[this.reports[i].verdict_type]
-            this.reports[i].type = this.Types[this.reports[i].type]
+            if(this.matching_entries[i].notified == false)
+            {
+              this.matching_entries[i].notified = "未通知"
+            }
+            else if(this.matching_entries[i].notified == true)
+            {
+              this.matching_entries[i].notified = "已通知"
+            }
           }
         }).catch((error) => {
-          // alert('error:' + error)
-          console.log(error)
           this.$alert(error.response.data)
         })
     },

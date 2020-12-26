@@ -3,7 +3,7 @@
   <div class = "info">
     <el-card class="title_card"
              style="font-size:24px;">
-      {{'物品模板#' + this.property_template_list.id }}
+      {{'物品模板#' + this.id }}
       <div class="edit">
         <el-button :id="id"
                       target="rent-application"
@@ -33,7 +33,7 @@
           <el-input autocomplete="off" v-model="create_field.name"></el-input>
         </el-form-item>
         <el-form-item label="属性权重">
-          <el-input autocomplete="off" v-model="create_field.details"></el-input>
+          <el-input-number v-model="create_field.details" controls-position="right" :min="1" :max="10" size="mini" width="60%"></el-input-number>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -49,7 +49,7 @@
           <el-input autocomplete="off" v-model="edit_field.name"></el-input>
         </el-form-item>
         <el-form-item label="属性名称">
-          <el-input autocomplete="off" v-model="edit_field.details"></el-input>
+          <el-input-number v-model="edit_field.details" controls-position="right" :min="1" :max="10" size="mini" width="60%"></el-input-number>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -65,21 +65,21 @@
         <el-divider>基本信息</el-divider>
         <el-form-item label='ID'>
           <el-row>
-            <el-col span="5">
+            <el-col :span="5">
               <el-input v-model="property_template_list.id"
                           :disabled="true"></el-input>
             </el-col>
-            <el-col span="8">
+            <el-col :span="8">
               <el-form-item label='物品名称'>
                 <el-input v-model="property_template_list.name"
                           :disabled=notEdit
                           style="width:100%;"></el-input>
               </el-form-item>
             </el-col>
-            <el-col span="8">
+            <el-col :span="8">
               <el-form-item label='物品种类'
                       class="label">
-                <el-select v-model="property_type_list.results[template_type].name"
+                <el-select v-model="current_template_name"
                           :disabled=notEdit>
                   <el-option v-for="item in property_type_list.results"
                             :key="item.id"
@@ -231,10 +231,6 @@ export default {
       property_type_list: [],
       template_fields_keys: [],
       template_fields: [],
-      // eslint-disable-next-line eqeqeq
-      isrenter: false,
-      // eslint-disable-next-line eqeqeq
-      isborrower: false,
       isAdmin: true,
       notEdit: true,
       inputVisible: false,
@@ -266,8 +262,8 @@ export default {
         name: "",
         details: ""
       },
-      template_type: ""
-      // isAdmin: this.$store.getters.isAdmin
+      template_type: 0,
+      current_template_name: ""
     }
   },
   created: function () {
@@ -279,12 +275,12 @@ export default {
       .then((response) => {
           this.property_template_list = response.data
           this.imgUrlToFile(this.property_template_list.thumbnail)
+          console.log(this.ruleForm)
           this.template_images.push({url: this.property_template_list.thumbnail})
           if(this.template_images.length != 0)
           {
             this.upload_show = true
           }
-          console.log(this.upload_show)
           this.template_fields_keys = Object.keys(this.property_template_list.fields)
           for(var i=0;i<this.template_fields_keys.length;i++)
           {
@@ -307,11 +303,11 @@ export default {
               this.template_type = i
             }
           }
+          this.current_template_name = this.property_type_list.results[this.template_type].name
       })
       .catch((error) => {
         alert('error:' + error)
       })
-    // this.changePage(1)
   },
   methods: {
     createField() {
@@ -374,7 +370,6 @@ export default {
       var self = this;
       var imgLink = url;
       var tempImage = new Image();
-      //如果图片url是网络url，要加下一句代码
       tempImage.crossOrigin = "*";
       tempImage.onload = function() {
         var base64 = self.getBase64Image(tempImage);
@@ -406,15 +401,13 @@ export default {
       return new Blob([u8arr], { type: mime });
     },
     blobToFile(blob, filename) {
-      // edge浏览器不支持new File对象，所以用以下方法兼容
       blob.lastModifiedDate = new Date();
       blob.name = filename;
       return blob;
     },
     getFileName(url) {
-      // 获取到文件名
-      let pos = url.lastIndexOf("/"); // 查找最后一个/的位置
-      return url.substring(pos + 1); // 截取最后一个/位置到字符长度，也就是截取文件名
+      let pos = url.lastIndexOf("/");
+      return url.substring(pos + 1);
     },
     handleClose(tag) {
       this.template_fields.splice(this.template_fields.indexOf(tag), 1);
@@ -468,25 +461,56 @@ export default {
       this.property_template_list.fields = json
       if(true)
       {
-        this.property_template_list.thumbnail = this.ruleForm.coverFile.raw
-        axios.put('/property-templates/'+this.id+'/', this.property_template_list, {
-          headers: {
-            Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        console.log(this.template_image_change)
+        if(this.template_image_change == false)
+        {
+          delete this.property_template_list.thumbnail
+          if(parseFloat(this.current_template_name).toString() != "NaN")
+          {
+            this.property_template_list.type = this.current_template_name
           }
-        })
-        .then((response) => {
-          location.reload()
-        })
-        .catch((error) => {
-          this.$alert(error.response.data)
-        })
+          axios.put('/property-templates/'+this.id+'/', this.property_template_list, {
+            headers: {
+              Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+            }
+          })
+          .then((response) => {
+            location.reload()
+          })
+          .catch((error) => {
+            this.$alert(error.response.data)
+          })
+        }
+        else{
+          let data=new FormData();
+          if(parseFloat(this.current_template_name).toString() != "NaN")
+          {
+            this.property_template_list.type = this.current_template_name
+          }
+          data.append('name', this.property_template_list.name)
+          data.append('type', this.property_template_list.type)
+          data.append('thumbnail', this.property_template_list.thumbnail.raw)
+          data.append('fields', JSON.stringify(this.property_template_list.fields))
+          axios.put('/property-templates/'+this.id+'/', data, {
+            headers: {
+              Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+            }
+          })
+          .then((response) => {
+            location.reload()
+          })
+          .catch((error) => {
+            this.$alert(error.response.data)
+          })
+        }
       }
       else
       {
+        this.property_template_list.thumbnail = this.ruleForm.coverFile.raw
         let data=new FormData();
         data.append('name', this.property_template_list.name)
         data.append('type', this.property_template_list.type)
-        data.append('thumbnail', this.property_template_list.thumbnail.raw)
+        data.append('thumbnail', this.ruleForm.coverFile.raw)
         data.append('fields', JSON.stringify(this.property_template_list.fields))
         axios.put('/property-templates/'+this.id+'/', data, {
           headers: {

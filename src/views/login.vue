@@ -45,15 +45,16 @@ export default {
   },
   created: function () {
     this.$store.commit('setNavIndex', 0)
-    console.log(this.$store.getters.getUserLoginStatus)
-    if(this.$store.getters.getUserLoginStatus == "true")
+    if(this.$store.getters.getUserLogoutStatus == "true")
     {
-      console.log(this.$store.getters.getUserLoginStatus)
-      this.$router.push('/lost-list')
+      this.$store.commit('resetState')
     }
     else
     {
-      this.$router.push('/login')
+      if(this.$store.getters.getUserLoginStatus == "true")
+      {
+        this.$router.push('/lost-list')
+      }
     }
   },
   methods: {
@@ -102,6 +103,8 @@ export default {
             this.$store.commit('setUserLoginStatus', true)
             this.$store.commit('setUserId', response.data.id)
             this.$store.commit('setUserAvatar', response.data.wechat_avatar)
+            this.$store.commit('setUserIsAdmin', response.data.is_superuser)
+            // console.log(response.data.is_superuser)
             location.reload()
           }
           else

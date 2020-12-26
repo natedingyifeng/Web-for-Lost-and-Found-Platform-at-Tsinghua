@@ -15,13 +15,11 @@
             <el-form-item label='邀请邮箱(Email)'
                           class="label">
               <el-row :gutter="10">
-                <el-col span="16">
+                <el-col :span="16">
                   <el-input autocomplete="off" v-model="email_invitation.email" placeholder="Send invitations through email"></el-input>
                 </el-col>
-                <el-col span="4">
-                  <el-button :id="id"
-                          :data="data"
-                          target="user"
+                <el-col :span="4">
+                  <el-button target="user"
                           class="change"
                           @click="sendEmailInvitation"
                           type="primary">发送</el-button>

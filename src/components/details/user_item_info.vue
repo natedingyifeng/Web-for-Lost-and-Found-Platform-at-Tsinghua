@@ -55,12 +55,12 @@
         <el-divider>账户信息</el-divider>
         <el-form-item label='ID'>
           <el-row>
-            <el-col span="2">
+            <el-col :span="2">
               <el-input v-model="id"
                         :disabled="true"
                         style="width:100%;"></el-input>
             </el-col>
-            <el-col span="7">
+            <el-col :span="7">
               <el-form-item label='创建时间'
                             class="label">
                 <el-date-picker
@@ -72,7 +72,7 @@
                 </el-date-picker>
               </el-form-item>
             </el-col>
-            <el-col span="7">
+            <el-col :span="7">
               <el-form-item label='上次登陆'
                             class="label">
                 <el-date-picker
@@ -84,7 +84,7 @@
                 </el-date-picker>
               </el-form-item>
             </el-col>
-            <el-col span="8">
+            <el-col :span="8">
               <el-form-item label='用户身份'
                             class="label">
                 <el-checkbox v-model="user_data.is_superuser" :disabled=notEdit>超级用户</el-checkbox>
@@ -96,7 +96,7 @@
         <el-divider>用户信息</el-divider>
         <el-form-item label='姓名'>
           <el-row>
-            <el-col span="10">
+            <el-col :span="10">
               姓
               <el-input v-model="user_data.last_name"
                         style="width:35%;"
@@ -106,13 +106,13 @@
                         :disabled=notEdit
                         style="width:35%;"></el-input>
             </el-col>
-            <el-col span="6">
+            <el-col :span="6">
               <el-form-item label='昵称'>
                 <el-input v-model="user_data.username"
                           :disabled=notEdit></el-input>
               </el-form-item>
             </el-col>
-            <el-col span="8">
+            <el-col :span="8">
               <el-form-item label='用户状态'>
                 <el-checkbox v-model="user_data.is_active" :disabled=notEdit>活跃中</el-checkbox>
                 <el-checkbox v-model="user_data.is_verified" :disabled=notEdit>已认证</el-checkbox>
@@ -122,23 +122,23 @@
         </el-form-item>
         <el-form-item label='Email'>
           <el-row>
-            <el-col span="5">
+            <el-col :span="5">
               <el-input v-model="user_data.email"
                         :disabled=notEdit></el-input>
             </el-col>
-            <el-col span="5">
+            <el-col :span="5">
               <el-form-item label='电话号码'>
                 <el-input v-model="user_data.phone"
                           :disabled=notEdit></el-input>
               </el-form-item>
             </el-col>
-            <el-col span="7">
+            <el-col :span="7">
               <el-form-item label='微信id'>
                 <el-input v-model="user_data.wechat_id"
                           :disabled=notEdit></el-input>
               </el-form-item>
             </el-col>
-            <el-col span="7">
+            <el-col :span="7">
               <el-form-item label='学生证号'>
                 <el-input v-model="user_data.student_id"
                           :disabled=notEdit></el-input>
@@ -184,7 +184,7 @@
         <el-row>
           <el-col :span="12">
             <el-divider>失物招领</el-divider>
-            <el-timeline :reverse="reverse">
+            <el-timeline>
               <el-timeline-item
                 v-for="(activity, index) in foundList.results"
                 :key="index"
@@ -195,7 +195,7 @@
           </el-col>
           <el-col :span="12">
             <el-divider>寻物启事</el-divider>
-            <el-timeline :reverse="reverse">
+            <el-timeline>
               <el-timeline-item
                 v-for="(activity, index) in lostList.results"
                 :key="index"
@@ -249,14 +249,12 @@ import lostTable from '../table/lost-table'
 import foundTable from '../table/found-table'
 import changeButton from '../button/change-button'
 import delButton from '../button/del-button'
-import chat from '../chat'
 export default {
   components: {
     'lost-table': lostTable,
     'found-table': foundTable,
     'change-button': changeButton,
     'del-button': delButton,
-    'chat-dialog': chat
   },
   props: {
     id: Number
@@ -342,7 +340,6 @@ export default {
             this.user_images_urls.push({url: this.user_data.wechat_avatar})
             this.user_images = {url: this.user_data.wechat_avatar}
           }
-          console.log(this.user_images_urls)
       })
       .catch((error) => {
         alert('error:' + error)
@@ -365,8 +362,6 @@ export default {
             this.foundList.results[i].status = this.Status[this.foundList.results[i].status]
           }
         }).catch((error) => {
-          // alert('error:' + error)
-          console.log(error)
           this.$alert(error.response.data)
         })
     axios.get('/lost-notices/', {
@@ -387,11 +382,8 @@ export default {
             this.lostList.results[i].status = this.Status[this.lostList.results[i].status]
           }
         }).catch((error) => {
-          // alert('error:' + error)
-          console.log(error)
           this.$alert(error.response.data)
         })
-    this.changePage(1)
   },
   methods: {
     handleUserImagePreview(file) {
@@ -402,28 +394,12 @@ export default {
       let index = -1
       let data=new FormData();
       let that=this
-      console.log(this.user_images_urls[0].url)
       data.append('url', this.user_images_urls[0].url)
       data.append('id', this.user_data.id)
-      console.log(data)
       this.user_images = {}
       this.user_images_urls = []
       this.upload_show = false
       this.imageUserDeleteUpdate()
-      // axios({
-      //   url: '/users/delete-avatar/',
-      //   method: 'post',
-      //   data: data
-      // })
-      //   .then((response) => {
-      //     this.user_images = {}
-      //     this.user_images_urls = []
-      //     this.upload_show = false
-      //     this.imageUserDeleteUpdate()
-      //   })
-      //   .catch((error) => {
-      //     alert('error:' + error)
-      //   });
     },
     imageUserDeleteUpdate(){
       this.user_data.wechat_avatar = null
@@ -612,54 +588,9 @@ export default {
       return result;
     },
     change: function () {
-      // const newData = {}
-      // for (const key in this.data) {
-      //   if (this.data[key] !== '') {
-      //     newData[key] = this.data[key]
-      //   }
-      // }
-
-      // Axios.patch('/api/v1/' + this.target + '/' + this.id + '/', newData, {
-      //   headers: {
-      //     Authorization: 'Token ' + this.$store.getters.getUserKey
-      //   }
-      // })
-      //   .then((response) => {
-      //     location.reload()
-      //     this.$message('修改成功')
-      //     // this.$router.push({ name: 'admin' })
-      //   })
-      //   .catch((error) => {
-      //     console.log(error.response)
-      //     console.log(error.request.response)
-      //     this.$alert(error.response.data)
-      //   })
       this.notEdit=false
     },
     confirm: function () {
-      // const newData = {}
-      // for (const key in this.data) {
-      //   if (this.data[key] !== '') {
-      //     newData[key] = this.data[key]
-      //   }
-      // }
-
-      // Axios.patch('/api/v1/' + this.target + '/' + this.id + '/', newData, {
-      //   headers: {
-      //     Authorization: 'Token ' + this.$store.getters.getUserKey
-      //   }
-      // })
-      //   .then((response) => {
-      //     location.reload()
-      //     this.$message('修改成功')
-      //     // this.$router.push({ name: 'admin' })
-      //   })
-      //   .catch((error) => {
-      //     console.log(error.response)
-      //     console.log(error.request.response)
-      //     this.$alert(error.response.data)
-      //   })
-      // this.$set(this.found_notice, "found_datetime", this.found_notice_found_datetime)
       axios.put('/users/'+this.id+'/', this.user_data, {
         headers: {
           Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
@@ -673,9 +604,6 @@ export default {
         })
       this.$message('修改成功')
       this.notEdit=true
-    },
-    enterEquipment: function (row) {
-      this.$router.push({ name: 'user', params: { userId: row.id } })
     },
     enterFoundNotice: function (id) {
       this.$router.push({ name: 'found', params: { foundId: id } })

@@ -11,7 +11,7 @@
              active-text-color="#ffd04b">
       <div class="logo"
            aria-disabled="true">
-        <a @click="gotoLogin('/login')">
+        <a @click="logout">
           <h3 style="float:left;color:white;margin-left:100px;">
             紫荆寻物THU
           </h3>
@@ -53,8 +53,8 @@
         <el-menu-item index="4-3"
                       @click="logout">退出登录</el-menu-item>
       </el-submenu>
-      <el-menu-item style="margin-right:100px;float:right;font-size:19px;"
-                    v-if="!hasLogin"><a href="/login">未登录</a></el-menu-item>
+      <!-- <el-menu-item style="margin-right:100px;float:right;font-size:19px;"
+                    v-if="!hasLogin"><a href="/login">未登录</a></el-menu-item> -->
     </el-menu>
   </div>
 </template>
@@ -67,7 +67,7 @@ import Axios from 'axios'
 export default {
   data () {
     return {
-      hasLogin: this.$store.getters.getUserAccessToken,
+      hasLogin: this.$store.getters.getUserLoginStatus,
       activeIndex: '0',
       inputSearch: '',
       select: '1',
@@ -75,10 +75,6 @@ export default {
     }
   },
   created: function(){
-    // if(this.$store.getters.getUserLoginStatus != "true")
-    // {
-    //   this.$router.push('/login')
-    // }
     this.avatar_update = false
     this.$nextTick(() => {
       this.avatar_update = true
@@ -157,9 +153,17 @@ export default {
       this.$router.push({ name: 'user', params: { userId: this.$store.getters.getUserId } })
     },
     logout () {
-      this.$store.commit('resetState')
+      this.$store.commit('setUserLogoutStatus', true)
+      this.$store.commit('setUserLoginStatus', false)
+      // this.$store.commit('resetState')
+      // this.$router.push('/login')
+      // while(this.$store.getters.getUserLogoutStatus == "false")
+      // {
+      //   console.log(1)
+      // }
       this.$router.push('/login')
-      location.reload()
+      this.hasLogin = false
+      // location.reload()
     },
     search () {
       console.log('search')

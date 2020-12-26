@@ -44,12 +44,12 @@
         <el-divider>基本信息</el-divider>
         <el-form-item label='ID'>
           <el-row>
-            <el-col span="4">
+            <el-col :span="4">
               <el-input v-model="report.id"
-                        disabled=false
+                        :disabled="true"
                         style="width:100%;"></el-input>
             </el-col>
-            <el-col span="7">
+            <el-col :span="7">
               <el-form-item label='创建时间'
                             class="label">
                 <el-date-picker
@@ -57,11 +57,11 @@
                   type="datetime"
                   placeholder="创建时间"
                   format="yyyy-MM-dd HH:mm:ss"
-                  disabled=false>
+                  :disabled="true">
                 </el-date-picker>
               </el-form-item>
             </el-col>
-            <el-col span="7">
+            <el-col :span="7">
               <el-form-item label='最近更新'
                             class="label">
                 <el-date-picker
@@ -69,13 +69,13 @@
                   type="datetime"
                   placeholder="更新时间"
                   format="yyyy-MM-dd HH:mm:ss"
-                  disabled=false>
+                  :disabled="true">
                 </el-date-picker>
               </el-form-item>
             </el-col>
-            <el-col span="6">
+            <el-col :span="6">
               <el-form-item label='举报人'>
-                <el-input v-model="report.submit_user.username" disabled=false></el-input>
+                <el-input v-model="author_username" :disabled="true"></el-input>
               </el-form-item>
             </el-col>
           </el-row>
@@ -84,17 +84,17 @@
         <el-form-item label='被举报人'
                       class="label">
           <el-row>
-            <el-col span="4">
-              <el-input v-model="report.user.username" disabled=false></el-input>
+            <el-col :span="4">
+              <el-input v-model="user_username" :disabled="true"></el-input>
             </el-col>
-            <el-col span="6">
+            <el-col :span="6">
               <el-form-item label='被举报寻物启事'
                     class="label"
                     label-width="140px">
                 <el-link target="_blank" :underline="false" :disabled="!report.lost_notice" @click="enterLostNotice(report.lost_notice)">{{"寻物启事#"+report.lost_notice}}<i class="el-icon-view el-icon--right"></i></el-link>
               </el-form-item>
             </el-col>
-            <el-col span="6">
+            <el-col :span="6">
               <el-form-item label='被举报失物招领'
                       class="label"
                       label-width="140px">
@@ -107,12 +107,12 @@
                       class="label">
           <el-input v-model="report.description"
                     type='textarea'
-                    disabled=false></el-input>
+                    :disabled="true"></el-input>
         </el-form-item>
         <el-form-item label='举报内容'
                       class="label">
           <el-select v-model="report.type"
-                     disabled=false>
+                     :disabled="true">
             <el-option v-for="item in type_options"
                        :key="item.value"
                        :label="item.label"
@@ -123,7 +123,7 @@
         <el-form-item label='状态'
                       class="label">
           <el-select v-model="report.verdict_type"
-                     disabled=false>
+                     :disabled="true">
             <el-option v-for="item in status_options"
                        :key="item.value"
                        :label="item.label"
@@ -172,14 +172,12 @@ import lostTable from '../table/lost-table'
 import foundTable from '../table/found-table'
 import changeButton from '../button/change-button'
 import delButton from '../button/del-button'
-import chat from '../chat'
 export default {
   components: {
     'lost-table': lostTable,
     'found-table': foundTable,
     'change-button': changeButton,
     'del-button': delButton,
-    'chat-dialog': chat
   },
   props: {
     id: Number
@@ -229,7 +227,9 @@ export default {
       applicant: '',
       block_content: '',
       block_dialogFormVisible: false,
-      user_data: ''
+      user_data: '',
+      author_username: '',
+      user_username: ''
     }
   },
   created: function () {
@@ -240,6 +240,8 @@ export default {
     })
     .then((response) => {
       this.report = response.data
+      this.author_username = this.report.submit_user.username
+      this.user_username = this.report.user.username
     })
     .catch((error) => {
       alert('error:' + error)

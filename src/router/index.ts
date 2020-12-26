@@ -40,11 +40,6 @@ const routes: Array<RouteConfig> = [
     component: () => import('../views/property_types_list.vue')
   },
   {
-    path: '/property-templates-list',
-    name: 'property-templates-list',
-    component: () => import('../views/property_templates_list.vue')
-  },
-  {
     path: '/lost/:lostId',
     name: 'lost',
     component: () => import('../views/lost.vue')

@@ -134,7 +134,7 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
-      Axios.get('/user-verification-applications', {
+      Axios.get('/user-verification-applications/', {
         params: {
           page: page
         },

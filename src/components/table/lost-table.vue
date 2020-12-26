@@ -115,7 +115,7 @@
         <el-form-item label='物品模板'
                       class="label">
           <el-select v-model="create_lost_notice.property.template">
-            <el-option v-for="item in property_template_list.results"
+            <el-option v-for="item in property_template_list"
                       :key="item.id"
                       :label="item.name"
                       :value="item.name"
@@ -175,16 +175,15 @@
         </el-form-item>
         <el-form-item label="拾取地点">
           <div v-for="(item, i) in create_lost_notice.lost_location.locations" :key="i">
-            <el-link target="_blank" :underline="false" :disabled=notEdit @click="editLostLocationTriger(i)" >{{item.name}}<i class="el-icon-map-location el-icon--right"></i></el-link>
+            <el-link target="_blank" :underline="false" @click="editLostLocationTriger(i)" >{{item.name}}<i class="el-icon-map-location el-icon--right"></i></el-link>
             <el-button
               size="mini"
               type="danger"
               @click="handleLocationDelete(item, i)"
-              :disabled=notEdit
               style="margin-left: 15px">删除</el-button>
-            <el-button v-if="i == create_lost_notice.lost_location.locations.length-1" class="button-new-tag" size="mini" @click="createLostLocationTriger(i)" :disabled=notEdit>+ New Location</el-button>
+            <el-button v-if="i == create_lost_notice.lost_location.locations.length-1" class="button-new-tag" size="mini" @click="createLostLocationTriger(i)">+ New Location</el-button>
           </div>
-          <el-button v-if="create_lost_notice.lost_location.locations.length==0" class="button-new-tag" size="mini" @click="createLostLocationTriger(-1)" :disabled=notEdit>+ New Location</el-button>
+          <el-button v-if="create_lost_notice.lost_location.locations.length==0" class="button-new-tag" size="mini" @click="createLostLocationTriger(-1)">+ New Location</el-button>
         </el-form-item>
         <el-form-item label='详情描述'
                       class="label">
@@ -506,6 +505,7 @@ export default {
     }
   },
   created: function () {
+    console.log(this.$store.getters.getUserAccessToken)
     Axios.get('/lost-notices/index/', {
       params: {
         start: this.page_begin,
@@ -535,14 +535,16 @@ export default {
       .catch((error) => {
         alert('error:' + error)
       })
-    Axios.get('/property-templates', {
+    let page_num = 0
+    Axios.get('/property-templates/', {
       params: {
-        page: 2
+        page: 1
       }
     })
       .then((response) => {
-          this.property_template_list = response.data
-          console.log(this.property_template_list.results)
+          this.property_template_list = response.data.results
+          page_num = Math.ceil(response.data.count/10)
+          this.getFullTemplateList(page_num)
       })
       .catch((error) => {
         alert('error:' + error)
@@ -550,6 +552,22 @@ export default {
     this.changePage(1)
   },
   methods: {
+    getFullTemplateList(page_num) {
+      for(let i=2;i<=page_num;i++)
+      {
+        Axios.get('/property-templates/', {
+          params: {
+            page: i
+          }
+        })
+          .then((response) => {
+              this.property_template_list = this.property_template_list.concat(response.data.results)
+          })
+          .catch((error) => {
+            alert('error:' + error)
+          })
+      }
+    },
     handleClose(item) {
       this.create_lost_notice.property.tags.splice(this.create_lost_notice.property.tags.indexOf(item), 1);
     },
@@ -612,14 +630,12 @@ export default {
       this.edit_location.address = ""
       this.edit_location.latitude = 0
       this.edit_location.longitude = 0
-      console.log(tem)
       this.edit_map_dialogFormVisible=false
     },
     showSelectLocation(){
       this.location_longitude = this.location_search_result.location.lng
       this.location_latitude = this.location_search_result.location.lat
       this.location_zoom = 14
-      console.log(this.location_longitude,this.location_latitude)
       this.location_select_dialogFormVisible = false
       this.map_update = false
       this.$nextTick(() => {
@@ -646,7 +662,7 @@ export default {
           alert('error: 没有找到对应的地址!')
         }
       }).catch(err => {
-        console.log(err)
+        this.$alert(err.response.data)
       })
     },
     checkPhoneValidation(phone){
@@ -747,11 +763,9 @@ export default {
       this.$set(this, 'create_template_fields', new_template_fields)
       this.$set(this, 'fields_show', true)
       this.create_lost_notice.property.attributes = JSON.parse(JSON.stringify(new_template_fields))
-      console.log(this.create_template_fields)
     },
     CreateNewLostNotice() {
       this.create_lost_notice.images = JSON.parse(JSON.stringify(this.create_lost_notice_image_url))
-      console.log(this.create_lost_notice)
       Axios({
         url: '/lost-notices/',
         method: 'post',
@@ -786,8 +800,6 @@ export default {
       this.lost_notice_image_visible = true
     },
     handleLostImageRemove(file) {
-      console.log(this.create_lost_notice_image_url.length)
-      console.log(this.create_lost_notice_image_url[0])
       let is_removed = false
       let index = -1
       for(let i=0;i<this.lost_notice_images_urls.length;i++)
@@ -797,8 +809,6 @@ export default {
           index = i
         }
       }
-      console.log(index)
-      console.log(this.lost_notice_images_urls)
       let data=new FormData();
       let that=this
       data.append('url', this.create_lost_notice_image_url[index].url)
@@ -822,9 +832,6 @@ export default {
         .catch((error) => {
           alert('error:' + error)
         })
-      console.log(this.lost_notice_images)
-      console.log(this.lost_notice_images_urls)
-      console.log(this.create_lost_notice_image_url)
     },
     saveImage(file,fileList) {
       this.lost_notice_images_urls.push({url:file.url})
@@ -858,7 +865,6 @@ export default {
       return row.status === value;
     },
     sortChange: function(column, prop, order) {
-      console.log(column + '-' + column.prop + '-' + column.order)
       let order_prop
       if(column.order == "descending")
       {
@@ -868,11 +874,9 @@ export default {
       {
         order_prop=column.prop
       }
-      Axios.get('/lost-notices', {
+      Axios.get('/lost-notices/', {
         params: {
-          ordering: order_prop,
-          offset: 0,
-          limit: this.pageSize
+          ordering: order_prop
         }
       })
         .then((response) => {
@@ -892,8 +896,6 @@ export default {
           }
           this.lost_notice_sum = response.data.total
         }).catch((error) => {
-          // alert('error:' + error)
-          console.log(error)
           this.$alert(error.response.data)
         })
     },
@@ -977,7 +979,6 @@ export default {
           }
           this.lost_notice_sum = response.data.total
         }).catch((error) => {
-          console.log(error)
           this.$alert(error.response.data)
         })
     }

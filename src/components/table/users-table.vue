@@ -125,8 +125,7 @@ export default {
         INA: "不活跃",
         SUS: "已禁用"
       },
-      users_sum: 0,
-      pageSize: 10
+      users_sum: 0
     }
   },
   created: function () {
@@ -145,7 +144,6 @@ export default {
             this.userList.results[i].date_joined=this.extractTime(joined_datetime)
             this.userList.results[i].status = this.Status[this.userList.results[i].status]
           }
-          // console.log(this.property_type_list.results)
           this.users_sum = response.data.count
       })
       .catch((error) => {
@@ -167,11 +165,12 @@ export default {
       {
         order_prop=column.prop
       }
-      Axios.get('/users', {
+      Axios.get('/users/', {
         params: {
-          ordering: order_prop,
-          offset: 0,
-          limit: this.pageSize
+          ordering: order_prop
+        },
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
         }
       })
         .then((response) => {
@@ -183,8 +182,6 @@ export default {
             this.userList.results[i].status = this.Status[this.userList.results[i].status]
           }
         }).catch((error) => {
-          // alert('error:' + error)
-          console.log(error)
           this.$alert(error.response.data)
         })
     },
@@ -240,9 +237,12 @@ export default {
       this.changePage(1)
     },
     changePage: function (page) {
-      Axios.get('/users', {
+      Axios.get('/users/', {
         params: {
           page: page
+        },
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
         }
       })
         .then((response) => {
@@ -254,7 +254,6 @@ export default {
             this.userList.results[i].status = this.Status[this.userList.results[i].status]
           }
         }).catch((error) => {
-          console.log(error)
           this.$alert(error.response.data)
         })
     }

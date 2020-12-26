@@ -102,7 +102,7 @@
             </el-col>
             <el-col :span=5>
               <el-form-item label='创建者姓名'>
-                <el-input v-model="found_notice.author.username"
+                <el-input v-model="author_username"
                           :disabled="true"
                           style="width:100%;"></el-input>
               </el-form-item>
@@ -325,7 +325,7 @@
           </el-table>
         </el-form-item>
         <el-divider>匹配启事</el-divider>
-        <el-timeline :reverse="reverse" width="60%">
+        <el-timeline width="60%">
           <el-timeline-item
             v-for="(activity, index) in found_notice.matching_entries"
             :key="index"
@@ -391,7 +391,7 @@
 .is_hidden .el-upload--picture-card{
   display:none;
 }
-.el-timeline {
+/deep/.el-timeline {
   padding-left: 150px;
   padding-right: 150px;
 }
@@ -515,7 +515,8 @@ export default {
         latitude: 0,
         longitude: 0
       },
-      has_location: false
+      has_location: false,
+      author_username: ""
       // isAdmin: this.$store.getters.isAdmin
     }
   },
@@ -532,9 +533,6 @@ export default {
           let found_datetime = this.found_notice.found_datetime
           let created_at = this.found_notice.created_at
           let updated_at = this.found_notice.updated_at
-          // this.found_notice_found_datetime=this.extractTime(found_datetime)
-          // this.found_notice_created_at=this.extractTime(created_at)
-          // this.found_notice_updated_at=this.extractTime(updated_at)
           this.found_notice_found_datetime=found_datetime
           this.found_notice_created_at=created_at
           this.found_notice_updated_at=updated_at
@@ -548,35 +546,50 @@ export default {
           }
           for(let i=0;i<this.found_notice.images.length;i++)
           {
-            // this.ruleForm.push({coverUrl: "", coverFile: ""})
-            // this.imgUrlToFile(this.found_notice.images[i].url, i)
             this.found_notice_images_urls.push({url: this.found_notice.images[i].url})
-            // console.log(this.found_notice_images_urls)
             this.found_notice_images.push({url: this.found_notice.images[i].url})
           }
           if(this.found_notice.found_location != {})
           {
             this.has_location = true
           }
-          //console.log(this.property_template_list.results[id-1])
-          console.log(this.found_notice)
+          this.author_username = this.found_notice.author.username
       })
       .catch((error) => {
         alert('error:' + error)
       })
-    axios.get('/property-templates', {
-      // headers: {
-      //   Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
-      // }
+    let page_num = 0
+    axios.get('/property-templates/', {
+      params: {
+        page: 1
+      }
     })
       .then((response) => {
           this.found_notice_item_options = response.data.results
+          page_num = Math.ceil(response.data.count/10)
+          this.getFullTemplateList(page_num)
       })
       .catch((error) => {
         alert('error:' + error)
       })
   },
   methods: {
+    getFullTemplateList(page_num) {
+      for(let i=2;i<=page_num;i++)
+      {
+        axios.get('/property-templates/', {
+          params: {
+            page: i
+          }
+        })
+          .then((response) => {
+              this.found_notice_item_options = this.found_notice_item_options.concat(response.data.results)
+          })
+          .catch((error) => {
+            alert('error:' + error)
+          })
+      }
+    },
     handleLocationDelete(){
       this.found_notice.found_location = {}
       this.has_location = false
@@ -809,14 +822,9 @@ export default {
           index = i
         }
       }
-      console.log(this.found_notice_images)
-      console.log(this.found_notice.images)
-      console.log(this.found_notice_origin.images)
-      console.log(this.found_notice_images_urls)
       let data=new FormData();
       let that=this
       data.append('url', this.found_notice_images_urls[index].url)
-      console.log(data)
       axios({
         url: '/found-notices/delete-image/',
         method: 'post',
@@ -847,10 +855,6 @@ export default {
         }
       })
         .then((response) => {
-          console.log(this.found_notice_images)
-          console.log(this.found_notice.images)
-          console.log(this.found_notice_origin.images)
-          console.log(this.found_notice_images_urls)
           if(this.found_notice.images.length < 3)
           {
             this.upload_show = false

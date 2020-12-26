@@ -284,7 +284,6 @@ export default {
       },
       types_sum: 0,
       pages_sum: 0,
-      pageSize: 10,
       pagination_update: true
     }
   },
@@ -292,7 +291,6 @@ export default {
     Axios.get('/property-types', {})
       .then((response) => {
           this.property_type_list = response.data
-          console.log(this.property_type_list.results)
           this.types_sum = response.data.count
           this.pagination_update = false
           this.$nextTick(() => {
@@ -345,10 +343,8 @@ export default {
       }
       this.inputVisible = false;
       this.inputValue = '';
-      console.log(this.template_fields)
     },
     sortChange: function(column, prop, order) {
-      console.log(column + '-' + column.prop + '-' + column.order)
       let order_prop
       if(column.order == "descending")
       {
@@ -358,20 +354,14 @@ export default {
       {
         order_prop=column.prop
       }
-      Axios.get('/property-types', {
+      Axios.get('/property-types/', {
         params: {
           ordering: order_prop,
-          offset: 0,
-          limit: this.pageSize
         }
       })
         .then((response) => {
           this.property_type_list = response.data
-          console.log(this.select)
-          console.log(this.input)
-          console.log(this.property_type_list.results)
         }).catch((error) => {
-          console.log(error)
           this.$alert(error.response.data)
         })
     },
@@ -386,12 +376,14 @@ export default {
       Axios({
         url: '/property-types/'+this.type_edit_id+'/',
         method: 'put',
-        data: data
+        data: data,
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
       })
         .then((response) => {
           this.type_edit_dialogFormVisible = false
           this.reload()
-          console.log(response.data)
         })
         .catch((error) => {
           alert('error:' + error)
@@ -424,7 +416,11 @@ export default {
       return false
     },
     DeleteType(id){
-      Axios.delete('/property-types/' + id + '/', {})
+      Axios.delete('/property-types/' + id + '/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
             this.reload()
         })
@@ -452,7 +448,11 @@ export default {
       return false
     },
     DeleteTemplate(id){
-      Axios.delete('/property-templates/' + id + '/', {})
+      Axios.delete('/property-templates/' + id + '/', {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserAccessToken
+        }
+      })
         .then((response) => {
             this.reload()
         })
@@ -492,7 +492,6 @@ export default {
         .then((response) => {
           this.type_dialogFormVisible = false
           this.reload()
-          console.log(response.data)
         })
         .catch((error) => {
           alert('error:' + error)
@@ -500,9 +499,6 @@ export default {
       this.type_dialogFormVisible = false
     },
     CreateNewTemplate: function() {
-      // const data = {
-      //   name: this.type_name.name
-      // }
       var json = {}
       for(var i=0;i<this.template_fields.length;i++)
       {
@@ -514,7 +510,6 @@ export default {
       data.append('type', this.template.type)
       data.append('thumbnail', this.template.thumbnail.raw)
       data.append('fields', this.template.fields)
-      //Axios.defaults.headers.common["Authorization"]="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjA2NTc2NDU4LCJqdGkiOiI3Njc4NjUzOWY0NDU0Y2NiYjUxOTEzZWFlZjUxMjFiYyIsInVzZXJfaWQiOjF9.HCgdFjYiXHIJFQDbbnvLZCe2JzA2es-AiTKuHWWyBVU"
       Axios({
         url: '/property-templates/',
         method: 'post',
@@ -526,7 +521,6 @@ export default {
         .then((response) => {
           this.template_dialogFormVisible = false
           this.reload()
-          console.log(response.data)
         })
         .catch((error) => {
           alert('error:' + error)
@@ -552,12 +546,7 @@ export default {
       })
         .then((response) => {
           this.property_type_list = response.data
-          console.log(this.select)
-          console.log(this.input)
-          console.log(this.property_type_list.results)
         }).catch((error) => {
-          // alert('error:' + error)
-          console.log(error)
           this.$alert(error.response.data)
         })
     }

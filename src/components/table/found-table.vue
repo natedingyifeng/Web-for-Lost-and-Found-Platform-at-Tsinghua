@@ -115,7 +115,7 @@
         <el-form-item label='物品模板'
                       class="label">
           <el-select v-model="create_found_notice.property.template">
-            <el-option v-for="item in property_template_list.results"
+            <el-option v-for="item in property_template_list"
                       :key="item.id"
                       :label="item.name"
                       :value="item.name"
@@ -166,15 +166,14 @@
           </el-date-picker>
         </el-form-item>
         <el-form-item label="拾取地点">
-          <el-link v-if="has_location" target="_blank" :underline="false" :disabled=notEdit @click="editFoundLocationTriger" >{{create_found_notice.found_location.name}}<i class="el-icon-map-location el-icon--right"></i></el-link>
+          <el-link v-if="has_location" target="_blank" :underline="false" @click="editFoundLocationTriger" >{{create_found_notice.found_location.name}}<i class="el-icon-map-location el-icon--right"></i></el-link>
           <el-button
             v-if="has_location"
             size="mini"
             type="danger"
             @click="handleLocationDelete(item, i)"
-            :disabled=notEdit
             style="margin-left: 15px">删除</el-button>
-          <el-button v-if="!has_location" class="button-new-tag" size="mini" @click="createFoundLocationTriger" :disabled=notEdit>+ New Location</el-button>
+          <el-button v-if="!has_location" class="button-new-tag" size="mini" @click="createFoundLocationTriger">+ New Location</el-button>
         </el-form-item>
         <el-form-item label='详情描述'
                       class="label">
@@ -362,7 +361,6 @@ export default {
       edit_map_dialogFormVisible: false,
       create_map_dialogFormVisible: false,
       location_select_dialogFormVisible: false,
-      pageSize: 15,
       notice_dialogFormVisible: false,
       fields_show: false,
       image_visible: false,
@@ -522,14 +520,16 @@ export default {
       .catch((error) => {
         alert('error:' + error)
       })
-    Axios.get('/property-templates', {
+    let page_num = 0
+    Axios.get('/property-templates/', {
       params: {
-        page: 2
+        page: 1
       }
     })
       .then((response) => {
-          this.property_template_list = response.data
-          console.log(this.property_template_list.results)
+          this.property_template_list = response.data.results
+          page_num = Math.ceil(response.data.count/10)
+          this.getFullTemplateList(page_num)
       })
       .catch((error) => {
         alert('error:' + error)
@@ -537,6 +537,22 @@ export default {
     this.changePage(1)
   },
   methods: {
+    getFullTemplateList(page_num) {
+      for(let i=2;i<=page_num;i++)
+      {
+        Axios.get('/property-templates/', {
+          params: {
+            page: i
+          }
+        })
+          .then((response) => {
+              this.property_template_list = this.property_template_list.concat(response.data.results)
+          })
+          .catch((error) => {
+            alert('error:' + error)
+          })
+      }
+    },
     handleClose(item) {
       this.create_found_notice.property.tags.splice(this.create_found_notice.property.tags.indexOf(item), 1);
     },
@@ -633,7 +649,7 @@ export default {
           alert('error: 没有找到对应的地址!')
         }
       }).catch(err => {
-        console.log(err)
+        this.$alert(err.response.data)
       })
     },
     checkPhoneValidation(phone){
@@ -730,11 +746,9 @@ export default {
       this.$set(this, 'create_template_fields', new_template_fields)
       this.$set(this, 'fields_show', true)
       this.create_found_notice.property.attributes = JSON.parse(JSON.stringify(new_template_fields))
-      console.log(this.create_template_fields)
     },
     CreateNewFoundNotice() {
       this.create_found_notice.images = JSON.parse(JSON.stringify(this.create_found_notice_image_url))
-      console.log(this.create_found_notice)
       Axios({
         url: '/found-notices/',
         method: 'post',
@@ -769,8 +783,6 @@ export default {
       this.found_notice_image_visible = true
     },
     handleFoundImageRemove(file) {
-      console.log(this.create_found_notice_image_url.length)
-      console.log(this.create_found_notice_image_url[0])
       let is_removed = false
       let index = -1
       for(let i=0;i<this.found_notice_images_urls.length;i++)
@@ -780,8 +792,6 @@ export default {
           index = i
         }
       }
-      console.log(index)
-      console.log(this.found_notice_images_urls)
       let data=new FormData();
       let that=this
       data.append('url', this.create_found_notice_image_url[index].url)
@@ -805,9 +815,6 @@ export default {
         .catch((error) => {
           alert('error:' + error)
         })
-      console.log(this.found_notice_images)
-      console.log(this.found_notice_images_urls)
-      console.log(this.create_found_notice_image_url)
     },
     saveImage(file,fileList) {
       this.found_notice_images_urls.push({url:file.url})
@@ -841,7 +848,6 @@ export default {
       return row.status === value;
     },
     sortChange: function(column, prop, order) {
-      console.log(column + '-' + column.prop + '-' + column.order)
       let order_prop
       if(column.order == "descending")
       {
@@ -851,11 +857,9 @@ export default {
       {
         order_prop=column.prop
       }
-      Axios.get('/found-notices', {
+      Axios.get('/found-notices/', {
         params: {
-          ordering: order_prop,
-          offset: 9,
-          limit: this.pageSize
+          ordering: order_prop
         }
       })
         .then((response) => {
@@ -871,8 +875,6 @@ export default {
             this.foundList.results[i].status = this.Status[this.foundList.results[i].status]
           }
         }).catch((error) => {
-          // alert('error:' + error)
-          console.log(error)
           this.$alert(error.response.data)
         })
     },
@@ -952,7 +954,6 @@ export default {
             this.foundList.results[i].status = this.Status[this.foundList.results[i].status]
           }
         }).catch((error) => {
-          console.log(error)
           this.$alert(error.response.data)
         })
     }
