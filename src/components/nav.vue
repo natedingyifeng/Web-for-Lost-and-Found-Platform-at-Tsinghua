@@ -73,6 +73,24 @@ export default {
     }
   },
   created: function(){
+    if(this.$store.getters.getUserRefreshToken != null)
+    {
+    let data = {"refresh": this.$store.getters.getUserRefreshToken}
+     Axios({
+        url: '/auth/token/refresh/',
+        method: 'post',
+        data: data
+      })
+        .then((response) => {
+          this.$store.commit('setUserAccessToken', response.data)
+          this.has_login = true
+          this.$store.commit('setUserLoginStatus', true)
+        })
+        .catch((error) => {
+          this.$alert(error.request, '登录失败！')
+          console.log(error.request)
+        })
+    }
     this.avatar_update = false
     this.$nextTick(() => {
       this.avatar_update = true

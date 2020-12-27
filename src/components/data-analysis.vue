@@ -180,6 +180,7 @@
   margin-right: 15%;
   margin-left: 15%;
   margin-bottom: 1%;
+  width: 1250px
 }
 .el-progress {
   margin-top: 5%;
