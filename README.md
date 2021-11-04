@@ -1,6 +1,6 @@
-# thu-lost-and-found-web
+# Web for Lost and Found Platform at Tsinghua
 
-> A Vue.js project
+Class project for Software Engineering: a lost and found platform at Tsinghua University
 
 ## Build Setup
 
